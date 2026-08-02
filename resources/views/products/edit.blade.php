@@ -85,7 +85,7 @@
             <label class="form-label" for="image">Photo du Produit</label>
             @if($product->image)
                 <div style="margin-bottom: 10px;">
-                    <img src="{{ asset('storage/' . $product->image) }}" alt="Preview" style="height: 100px; border-radius: 8px; border: 1px solid var(--border-color);">
+                    <img src="{{ asset('public-storage/' . $product->image) }}" alt="Preview" style="height: 100px; border-radius: 8px; border: 1px solid var(--border-color);">
                 </div>
             @endif
             <input type="file" name="image" id="image" class="form-control">

@@ -91,7 +91,7 @@
                 </li>
                 @endif
 
-                <!-- Supplier Dispatching Dashboard -->
+                {{-- Supplier Dispatching Dashboard (Disabled)
                 @if(auth()->user()->hasPermission('view_logistics'))
                 <li>
                     <a href="{{ route('supplier.index') }}" class="sidebar-link {{ Route::is('supplier.*') ? 'active' : '' }}">
@@ -100,6 +100,7 @@
                     </a>
                 </li>
                 @endif
+                --}}
 
                 <!-- Prospects / Dialer lists -->
                 @if(auth()->user()->hasPermission('view_prospects'))

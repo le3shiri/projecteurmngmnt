@@ -76,10 +76,10 @@
             <h3 class="card-title">Logo personnalisé</h3>
             @if($order->logo_path)
                 <div style="background: #000; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); text-align: center; padding: 1.5rem 1rem;">
-                    <img src="{{ asset('storage/' . $order->logo_path) }}" alt="Logo Commande" style="max-width: 100%; max-height: 200px; object-fit: contain;">
+                    <img src="{{ asset('public-storage/' . $order->logo_path) }}" alt="Logo Commande" style="max-width: 100%; max-height: 200px; object-fit: contain;">
                 </div>
                 <div style="margin-top: 10px; text-align: center;">
-                    <a href="{{ asset('storage/' . $order->logo_path) }}" target="_blank" class="btn btn-secondary btn-sm" style="width: 100%;">
+                    <a href="{{ asset('public-storage/' . $order->logo_path) }}" target="_blank" class="btn btn-secondary btn-sm" style="width: 100%;">
                         <i class="fa-solid fa-expand"></i> Agrandir le logo
                     </a>
                 </div>

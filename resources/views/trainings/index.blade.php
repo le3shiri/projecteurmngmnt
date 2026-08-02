@@ -66,9 +66,9 @@
 
                     <div style="display: flex; gap: 8px; align-items: center;">
                         @if($training->file_path)
-                            <a href="{{ asset('storage/' . $training->file_path) }}" target="_blank" class="btn btn-secondary btn-sm" style="background: rgba(212,175,55,0.1); color: var(--primary);">
+                            <button onclick="openPdfModal('{{ asset('public-storage/' . $training->file_path) }}', '{{ addslashes($training->title) }}')" class="btn btn-secondary btn-sm" style="background: rgba(212,175,55,0.1); color: var(--primary); border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;">
                                 <i class="fa-solid fa-file-pdf"></i> Ouvrir PDF
-                            </a>
+                            </button>
                         @endif
 
                         @if($training->video_url)
@@ -98,4 +98,140 @@
     </div>
 
 </div>
+
+<!-- Modal PDF Reader -->
+<div id="pdfModal" class="pdf-modal-backdrop" style="display: none;">
+    <div class="pdf-modal-container glass-card">
+        <div class="pdf-modal-header">
+            <h3 id="pdfModalTitle" style="margin: 0; color: #fff; font-size: 1.15rem; font-weight: 600;">Lecteur PDF</h3>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <a id="pdfExternalLink" href="#" target="_blank" class="btn btn-secondary btn-sm" style="font-size: 0.8rem; padding: 5px 10px;">
+                    <i class="fa-solid fa-external-link"></i> Plein Écran
+                </a>
+                <button onclick="closePdfModal()" class="pdf-modal-close-btn">&times;</button>
+            </div>
+        </div>
+        <div class="pdf-modal-body">
+            <iframe id="pdfFrame" src="" style="width: 100%; height: 100%; border: none; border-radius: 0 0 8px 8px;"></iframe>
+        </div>
+    </div>
+</div>
+
+<style>
+    .pdf-modal-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .pdf-modal-backdrop.active {
+        opacity: 1;
+    }
+    
+    .pdf-modal-container {
+        width: 90%;
+        max-width: 1200px;
+        height: 85%;
+        margin: 0 !important;
+        padding: 0 !important;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        transform: scale(0.95);
+        transition: transform 0.3s ease;
+    }
+    
+    .pdf-modal-backdrop.active .pdf-modal-container {
+        transform: scale(1);
+    }
+    
+    .pdf-modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        background: rgba(30, 41, 59, 0.5);
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .pdf-modal-close-btn {
+        background: none;
+        border: none;
+        color: var(--text-secondary);
+        font-size: 1.75rem;
+        cursor: pointer;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+    }
+    
+    .pdf-modal-close-btn:hover {
+        color: #fff;
+        background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .pdf-modal-body {
+        flex: 1;
+        background: #0f172a;
+    }
+</style>
+
+<script>
+    function openPdfModal(url, title) {
+        const modal = document.getElementById('pdfModal');
+        const frame = document.getElementById('pdfFrame');
+        const titleEl = document.getElementById('pdfModalTitle');
+        const externalLink = document.getElementById('pdfExternalLink');
+        
+        titleEl.textContent = title;
+        externalLink.href = url;
+        frame.src = url;
+        
+        modal.style.display = 'flex';
+        // Trigger reflow
+        modal.offsetHeight;
+        modal.classList.add('active');
+        
+        // Prevent background scrolling
+        document.body.style.overflow = 'hidden';
+    }
+    
+    function closePdfModal() {
+        const modal = document.getElementById('pdfModal');
+        const frame = document.getElementById('pdfFrame');
+        
+        modal.classList.remove('active');
+        setTimeout(() => {
+            modal.style.display = 'none';
+            frame.src = '';
+        }, 300);
+        
+        // Restore background scrolling
+        document.body.style.overflow = '';
+    }
+    
+    // Close modal on escape key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closePdfModal();
+        }
+    });
+</script>
 @endsection

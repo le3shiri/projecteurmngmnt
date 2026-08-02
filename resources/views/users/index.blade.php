@@ -49,7 +49,7 @@
                                 <div style="font-weight: 500;">{{ $user->cin ?? 'Non défini' }}</div>
                                 <div style="display: flex; gap: 10px; margin-top: 5px; font-size: 0.85rem;">
                                     @if($user->cin_card_path)
-                                        <a href="{{ asset('storage/' . $user->cin_card_path) }}" target="_blank" title="Carte Nationale (Recto/Verso)" style="color: var(--primary); display: inline-flex; align-items: center; gap: 3px;">
+                                        <a href="{{ asset('public-storage/' . $user->cin_card_path) }}" target="_blank" title="Carte Nationale (Recto/Verso)" style="color: var(--primary); display: inline-flex; align-items: center; gap: 3px;">
                                             <i class="fa-solid fa-id-card"></i> CNI
                                         </a>
                                     @else
@@ -59,7 +59,7 @@
                                     @endif
                                     
                                     @if($user->engagement_letter_path)
-                                        <a href="{{ asset('storage/' . $user->engagement_letter_path) }}" target="_blank" title="Lettre d'Engagement" style="color: var(--primary); display: inline-flex; align-items: center; gap: 3px;">
+                                        <a href="{{ asset('public-storage/' . $user->engagement_letter_path) }}" target="_blank" title="Lettre d'Engagement" style="color: var(--primary); display: inline-flex; align-items: center; gap: 3px;">
                                             <i class="fa-solid fa-file-signature"></i> Contrat
                                         </a>
                                     @else

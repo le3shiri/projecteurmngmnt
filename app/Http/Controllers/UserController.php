@@ -28,7 +28,6 @@ class UserController extends Controller
             'role' => 'required|in:admin,supplier,agent',
             'commission_rate' => 'nullable|numeric|min:0|max:100',
             'phone' => 'nullable|string',
-            'password' => 'required|string|min:6|confirmed',
             'access_code' => 'nullable|string|max:20|unique:users,access_code',
             'cin' => 'required_if:role,agent|nullable|string|max:30',
             'cin_card' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
@@ -53,7 +52,7 @@ class UserController extends Controller
             'role' => $request->role,
             'commission_rate' => $request->commission_rate ?? 0,
             'phone' => $request->phone,
-            'password' => bcrypt($request->password),
+            'password' => bcrypt(Str::random(16)),
             'access_code' => $accessCode,
             'is_active' => true,
             'cin' => $request->cin,
@@ -77,7 +76,6 @@ class UserController extends Controller
             'role' => 'required|in:admin,supplier,agent',
             'commission_rate' => 'nullable|numeric|min:0|max:100',
             'phone' => 'nullable|string',
-            'password' => 'nullable|string|min:6|confirmed',
             'access_code' => 'required|string|max:20|unique:users,access_code,' . $user->id,
             'cin' => 'required_if:role,agent|nullable|string|max:30',
             'cin_card' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
@@ -106,10 +104,6 @@ class UserController extends Controller
                 Storage::disk('public')->delete($user->engagement_letter_path);
             }
             $data['engagement_letter_path'] = $request->file('engagement_letter')->store('agent_docs', 'public');
-        }
-
-        if ($request->filled('password')) {
-            $data['password'] = bcrypt($request->password);
         }
 
         $user->update($data);
@@ -166,9 +160,6 @@ class UserController extends Controller
             'Sessions de Formation' => [
                 'view_trainings' => 'Consulter le planning des formations',
                 'manage_trainings' => 'Créer et supprimer des sessions de formation'
-            ],
-            'Logistique Fournisseur' => [
-                'view_logistics' => 'Accéder au tableau logistique fournisseur & expéditions'
             ]
         ];
 

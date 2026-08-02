@@ -53,27 +53,36 @@ class ProspectController extends Controller
             'uploaded_by' => auth()->id(),
         ]);
 
-        // Parse CSV and insert prospects
-        $filePath = storage_path('app/public/' . $path);
-        if (($handle = fopen($filePath, 'r')) !== false) {
-            // Check if there is a header
-            $header = fgetcsv($handle, 1000, ',');
+        // Parse CSV and insert prospects using abstract Storage facade (avoids absolute path conflicts)
+        if (Storage::disk('public')->exists($path)) {
+            $csvContent = Storage::disk('public')->get($path);
+            $lines = preg_split('/\r\n|\r|\n/', $csvContent);
             
-            while (($data = fgetcsv($handle, 1000, ',')) !== false) {
-                // We assume first column is name, second is phone. Or just phone.
-                $name = $data[0] ?? 'Prospect';
-                $phone = $data[1] ?? ($data[0] ?? null);
-
-                if ($phone) {
-                    Prospect::create([
-                        'prospect_file_id' => $prospectFile->id,
-                        'name' => trim($name),
-                        'phone' => trim($phone),
-                        'status' => 'pending',
-                    ]);
+            // Filter out empty lines
+            $lines = array_filter($lines, function ($line) {
+                return trim($line) !== '';
+            });
+            
+            if (count($lines) > 0) {
+                // Skip header row
+                array_shift($lines);
+                
+                foreach ($lines as $line) {
+                    $data = str_getcsv($line);
+                    // First column is name, second is phone number. Fallback to name as phone if only 1 column.
+                    $name = $data[0] ?? 'Prospect';
+                    $phone = $data[1] ?? ($data[0] ?? null);
+                    
+                    if ($phone) {
+                        Prospect::create([
+                            'prospect_file_id' => $prospectFile->id,
+                            'name' => trim($name),
+                            'phone' => trim($phone),
+                            'status' => 'pending',
+                        ]);
+                    }
                 }
             }
-            fclose($handle);
         }
 
         return redirect()->route('prospects.index')->with('success', 'Fichier prospects importé et assigné avec succès.');

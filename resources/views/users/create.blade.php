@@ -191,19 +191,7 @@
             </div>
         </div>
 
-        <!-- Section 4: Sécurité -->
-        <h3 class="form-section-title"><i class="fa-solid fa-key"></i> Sécurité</h3>
-        <div class="form-row" style="margin-bottom: 2rem;">
-            <div class="form-group">
-                <label class="form-label" for="password">Mot de passe</label>
-                <input type="password" name="password" id="password" class="form-control" placeholder="Minimum 6 caractères" required>
-            </div>
 
-            <div class="form-group">
-                <label class="form-label" for="password_confirmation">Confirmer Mot de passe</label>
-                <input type="password" name="password_confirmation" id="password_confirmation" class="form-control" placeholder="Répéter le mot de passe" required>
-            </div>
-        </div>
 
         <button type="submit" class="btn btn-primary" style="width: 100%; height: 45px; font-size: 1rem; border-radius: 8px;">
             Créer le Collaborateur <i class="fa-solid fa-user-plus" style="margin-left: 5px;"></i>

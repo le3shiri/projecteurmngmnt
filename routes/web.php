@@ -23,23 +23,108 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
+// Temporary Route to Fix Hostinger Storage Symlink (by converting it to a real directory)
+Route::get('/fix-storage', function () {
+    try {
+        // Manually delete configuration and route cache files to force refresh
+        $cacheFiles = [
+            base_path('bootstrap/cache/config.php'),
+            base_path('bootstrap/cache/routes-v7.php'),
+            base_path('bootstrap/cache/services.php'),
+            base_path('bootstrap/cache/packages.php'),
+            base_path('bootstrap/cache/events.php'),
+        ];
+        
+        $cleared = [];
+        foreach ($cacheFiles as $file) {
+            if (file_exists($file)) {
+                @unlink($file);
+                $cleared[] = basename($file);
+            }
+        }
+
+        $storageLink = base_path('public-storage');
+        $targetFolder = storage_path('app/public');
+
+        if (file_exists($storageLink) || is_link($storageLink)) {
+            if (is_link($storageLink)) {
+                unlink($storageLink);
+            } else {
+                @unlink($storageLink);
+                if (file_exists($storageLink) && is_dir($storageLink)) {
+                    @rename($storageLink, $storageLink . '_backup_' . time());
+                }
+            }
+        }
+
+        if (!file_exists($storageLink)) {
+            mkdir($storageLink, 0755, true);
+        }
+
+        $copyDir = function ($src, $dst) use (&$copyDir) {
+            if (!is_dir($src))
+                return;
+            @mkdir($dst, 0755, true);
+            $dir = opendir($src);
+            while (($file = readdir($dir)) !== false) {
+                if ($file != '.' && $file != '..') {
+                    if (is_dir($src . '/' . $file)) {
+                        $copyDir($src . '/' . $file, $dst . '/' . $file);
+                    } else {
+                        copy($src . '/' . $file, $dst . '/' . $file);
+                    }
+                }
+            }
+            closedir($dir);
+        };
+
+        if (is_dir($targetFolder)) {
+            $copyDir($targetFolder, $storageLink);
+        }
+
+        // If public_html/storage is a broken symlink, delete it so Apache doesn't block requests
+        $brokenPublicStorage = base_path('storage');
+        if (is_link($brokenPublicStorage)) {
+            @unlink($brokenPublicStorage);
+        }
+
+        $diagnostics = [
+            'DOCUMENT_ROOT' => $_SERVER['DOCUMENT_ROOT'] ?? 'N/A',
+            'base_path' => base_path(),
+            'public-storage_path' => base_path('public-storage'),
+            'storage_path_app_public' => storage_path('app/public'),
+            'public-storage_exists' => file_exists(base_path('public-storage')) ? 'Yes' : 'No',
+            'public-storage_is_dir' => is_dir(base_path('public-storage')) ? 'Yes' : 'No',
+            'config_disks_public_root' => config('filesystems.disks.public.root'),
+            'resolved_public_disk_path' => \Illuminate\Support\Facades\Storage::disk('public')->path(''),
+        ];
+
+        return response()->json([
+            'message' => 'Le stockage a été converti en dossier public-storage et tous les fichiers existants ont été copiés avec succès !',
+            'diagnostics' => $diagnostics
+        ], 200, [], JSON_PRETTY_PRINT);
+    } catch (\Exception $e) {
+        return 'Erreur : ' . $e->getMessage();
+    }
+});
+
 // Authenticated Routes
 Route::middleware(['role'])->group(function () {
-    
+
     // Common Dashboard
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard')->middleware('permission:view_dashboard');
 
     // Customers
-    Route::middleware(['permission:view_customers'])->group(function () {
-        Route::get('customers', [CustomerController::class, 'index'])->name('customers.index');
-        Route::get('customers/{customer}', [CustomerController::class, 'show'])->name('customers.show');
-    });
     Route::middleware(['permission:manage_customers'])->group(function () {
         Route::get('customers/create', [CustomerController::class, 'create'])->name('customers.create');
         Route::post('customers', [CustomerController::class, 'store'])->name('customers.store');
         Route::get('customers/{customer}/edit', [CustomerController::class, 'edit'])->name('customers.edit');
         Route::put('customers/{customer}', [CustomerController::class, 'update'])->name('customers.update');
         Route::delete('customers/{customer}', [CustomerController::class, 'destroy'])->name('customers.destroy');
+    });
+    Route::middleware(['permission:view_customers'])->group(function () {
+        Route::get('customers', [CustomerController::class, 'index'])->name('customers.index');
+        Route::get('customers/{customer}', [CustomerController::class, 'show'])->name('customers.show');
     });
 
     // Products
@@ -67,14 +152,14 @@ Route::middleware(['role'])->group(function () {
     });
 
     // Orders
+    Route::middleware(['permission:manage_orders'])->group(function () {
+        Route::get('orders/create', [OrderController::class, 'create'])->name('orders.create');
+        Route::post('orders', [OrderController::class, 'store'])->name('orders.store');
+    });
     Route::middleware(['permission:view_orders'])->group(function () {
         Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
         Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
         Route::get('orders/{order}/pdf/{type}', [OrderController::class, 'downloadPdf'])->name('orders.pdf');
-    });
-    Route::middleware(['permission:manage_orders'])->group(function () {
-        Route::get('orders/create', [OrderController::class, 'create'])->name('orders.create');
-        Route::post('orders', [OrderController::class, 'store'])->name('orders.store');
     });
     Route::middleware(['permission:update_order_status'])->group(function () {
         Route::post('orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.updateStatus');
@@ -106,7 +191,7 @@ Route::middleware(['role'])->group(function () {
     Route::middleware(['permission:manage_users'])->group(function () {
         Route::resource('users', UserController::class);
         Route::post('users/{user}/toggle', [UserController::class, 'toggleStatus'])->name('users.toggle');
-        
+
         // Permissions settings UI
         Route::get('permissions', [UserController::class, 'permissionsIndex'])->name('permissions.index');
         Route::post('permissions', [UserController::class, 'permissionsUpdate'])->name('permissions.update');

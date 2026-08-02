@@ -46,7 +46,7 @@
             <div class="product-image">
                 <a href="{{ route('products.show', $product->id) }}" style="display: block; width: 100%; height: 100%;">
                     @if($product->image)
-                        <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}">
+                        <img src="{{ asset('public-storage/' . $product->image) }}" alt="{{ $product->name }}">
                     @else
                         <i class="fa-solid fa-image product-placeholder"></i>
                     @endif

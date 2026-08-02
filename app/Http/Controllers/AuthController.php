@@ -18,46 +18,23 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        // Check if log in is using Access Code or Email/Password
-        if ($request->has('access_code') && !empty($request->access_code)) {
-            $request->validate([
-                'access_code' => 'required|string',
-            ]);
-
-            $user = User::where('access_code', $request->access_code)->first();
-
-            if ($user) {
-                if (!$user->is_active) {
-                    return back()->withErrors(['access_code' => 'Votre compte est désactivé.']);
-                }
-
-                Auth::login($user, $request->has('remember'));
-                $request->session()->regenerate();
-                return redirect()->intended(route('dashboard'));
-            }
-
-            return back()->withErrors(['access_code' => 'Code d\'accès incorrect.']);
-        }
-
-        $credentials = $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
+        $request->validate([
+            'access_code' => 'required|string',
         ]);
 
-        if (Auth::attempt($credentials, $request->has('remember'))) {
-            $user = Auth::user();
+        $user = User::where('access_code', $request->access_code)->first();
+
+        if ($user) {
             if (!$user->is_active) {
-                Auth::logout();
-                return back()->withErrors(['email' => 'Votre compte est désactivé.']);
+                return back()->withErrors(['access_code' => 'Votre compte est désactivé.']);
             }
 
+            Auth::login($user, $request->has('remember'));
             $request->session()->regenerate();
             return redirect()->intended(route('dashboard'));
         }
 
-        return back()->withErrors([
-            'email' => 'Les identifiants ne correspondent pas à nos enregistrements.',
-        ])->onlyInput('email');
+        return back()->withErrors(['access_code' => 'Code d\'accès incorrect.']);
     }
 
     public function logout(Request $request)

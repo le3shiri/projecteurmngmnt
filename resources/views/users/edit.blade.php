@@ -177,7 +177,7 @@
                     </div>
                     @if($user->cin_card_path)
                         <div style="margin-top: 8px; font-size: 0.85rem;">
-                            <a href="{{ asset('storage/' . $user->cin_card_path) }}" target="_blank" style="color: var(--primary); display: inline-flex; align-items: center; gap: 5px; text-decoration: none; font-weight: 500;">
+                            <a href="{{ asset('public-storage/' . $user->cin_card_path) }}" target="_blank" style="color: var(--primary); display: inline-flex; align-items: center; gap: 5px; text-decoration: none; font-weight: 500;">
                                 <i class="fa-solid fa-file-arrow-down"></i> Voir le CNI actuel
                             </a>
                         </div>
@@ -196,7 +196,7 @@
                     </div>
                     @if($user->engagement_letter_path)
                         <div style="margin-top: 8px; font-size: 0.85rem;">
-                            <a href="{{ asset('storage/' . $user->engagement_letter_path) }}" target="_blank" style="color: var(--primary); display: inline-flex; align-items: center; gap: 5px; text-decoration: none; font-weight: 500;">
+                            <a href="{{ asset('public-storage/' . $user->engagement_letter_path) }}" target="_blank" style="color: var(--primary); display: inline-flex; align-items: center; gap: 5px; text-decoration: none; font-weight: 500;">
                                 <i class="fa-solid fa-file-arrow-down"></i> Voir l'engagement actuel
                             </a>
                         </div>
@@ -205,23 +205,7 @@
             </div>
         </div>
 
-        <!-- Section 4: Sécurité -->
-        <div style="border-top: 1px solid var(--border-color); margin: 2rem 0; padding-top: 1.5rem;">
-            <h4 class="form-section-title" style="margin-top: 0;"><i class="fa-solid fa-key"></i> Changer de mot de passe (Facultatif)</h4>
-            <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1.5rem;">Laissez vide si vous ne souhaitez pas modifier le mot de passe actuel.</p>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label" for="password">Nouveau mot de passe</label>
-                    <input type="password" name="password" id="password" class="form-control" placeholder="Minimum 6 caractères">
-                </div>
 
-                <div class="form-group">
-                    <label class="form-label" for="password_confirmation">Confirmer nouveau mot de passe</label>
-                    <input type="password" name="password_confirmation" id="password_confirmation" class="form-control" placeholder="Répéter le mot de passe">
-                </div>
-            </div>
-        </div>
 
         <button type="submit" class="btn btn-primary" style="width: 100%; height: 45px; font-size: 1rem; border-radius: 8px;">
             Enregistrer les modifications <i class="fa-solid fa-floppy-disk" style="margin-left: 5px;"></i>

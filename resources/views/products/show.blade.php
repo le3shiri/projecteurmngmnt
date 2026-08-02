@@ -135,7 +135,7 @@
     <!-- Left Column: Image -->
     <div class="show-image-card glass-card">
         @if($product->image)
-            <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}">
+            <img src="{{ asset('public-storage/' . $product->image) }}" alt="{{ $product->name }}">
         @else
             <div style="text-align: center; color: var(--text-secondary);">
                 <i class="fa-solid fa-image" style="font-size: 5rem; opacity: 0.3; margin-bottom: 1rem; display: block;"></i>
