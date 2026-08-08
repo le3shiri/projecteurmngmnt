@@ -30,15 +30,24 @@ class UserController extends Controller
             'phone' => 'nullable|string',
             'access_code' => 'nullable|string|max:20|unique:users,access_code',
             'cin' => 'required_if:role,agent|nullable|string|max:30',
-            'cin_card' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'cin_recto' => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:5120',
+            'cin_verso' => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:5120',
+            'cin_card' => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:5120',
             'engagement_letter' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
         ]);
 
         $accessCode = $request->access_code ?: strtoupper(Str::random(8));
 
-        $cinCardPath = null;
-        if ($request->hasFile('cin_card')) {
-            $cinCardPath = $request->file('cin_card')->store('agent_docs', 'public');
+        $cinRectoPath = null;
+        if ($request->hasFile('cin_recto')) {
+            $cinRectoPath = $request->file('cin_recto')->store('agent_docs', 'public');
+        } elseif ($request->hasFile('cin_card')) {
+            $cinRectoPath = $request->file('cin_card')->store('agent_docs', 'public');
+        }
+
+        $cinVersoPath = null;
+        if ($request->hasFile('cin_verso')) {
+            $cinVersoPath = $request->file('cin_verso')->store('agent_docs', 'public');
         }
 
         $engagementLetterPath = null;
@@ -56,7 +65,9 @@ class UserController extends Controller
             'access_code' => $accessCode,
             'is_active' => true,
             'cin' => $request->cin,
-            'cin_card_path' => $cinCardPath,
+            'cin_card_path' => $cinRectoPath,
+            'cin_recto_path' => $cinRectoPath,
+            'cin_verso_path' => $cinVersoPath,
             'engagement_letter_path' => $engagementLetterPath,
         ]);
 
@@ -78,7 +89,9 @@ class UserController extends Controller
             'phone' => 'nullable|string',
             'access_code' => 'required|string|max:20|unique:users,access_code,' . $user->id,
             'cin' => 'required_if:role,agent|nullable|string|max:30',
-            'cin_card' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'cin_recto' => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:5120',
+            'cin_verso' => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:5120',
+            'cin_card' => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:5120',
             'engagement_letter' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
         ]);
 
@@ -92,11 +105,25 @@ class UserController extends Controller
             'cin' => $request->cin,
         ];
 
-        if ($request->hasFile('cin_card')) {
-            if ($user->cin_card_path) {
-                Storage::disk('public')->delete($user->cin_card_path);
+        if ($request->hasFile('cin_recto')) {
+            if ($user->cin_recto_path) {
+                Storage::disk('public')->delete($user->cin_recto_path);
             }
-            $data['cin_card_path'] = $request->file('cin_card')->store('agent_docs', 'public');
+            $data['cin_recto_path'] = $request->file('cin_recto')->store('agent_docs', 'public');
+            $data['cin_card_path'] = $data['cin_recto_path'];
+        } elseif ($request->hasFile('cin_card')) {
+            if ($user->cin_recto_path) {
+                Storage::disk('public')->delete($user->cin_recto_path);
+            }
+            $data['cin_recto_path'] = $request->file('cin_card')->store('agent_docs', 'public');
+            $data['cin_card_path'] = $data['cin_recto_path'];
+        }
+
+        if ($request->hasFile('cin_verso')) {
+            if ($user->cin_verso_path) {
+                Storage::disk('public')->delete($user->cin_verso_path);
+            }
+            $data['cin_verso_path'] = $request->file('cin_verso')->store('agent_docs', 'public');
         }
 
         if ($request->hasFile('engagement_letter')) {
@@ -160,6 +187,10 @@ class UserController extends Controller
             'Sessions de Formation' => [
                 'view_trainings' => 'Consulter le planning des formations',
                 'manage_trainings' => 'Créer et supprimer des sessions de formation'
+            ],
+            'Documents Importants (Société)' => [
+                'view_documents' => 'Consulter la bibliothèque de documents officiels',
+                'manage_documents' => 'Ajouter, modifier et supprimer des documents officiels'
             ]
         ];
 

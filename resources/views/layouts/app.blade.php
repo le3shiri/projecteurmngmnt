@@ -131,6 +131,16 @@
                     </a>
                 </li>
                 @endif
+
+                <!-- Company Important Documents -->
+                @if(auth()->user()->hasPermission('view_documents'))
+                <li>
+                    <a href="{{ route('company_documents.index') }}" class="sidebar-link {{ Route::is('company_documents.*') ? 'active' : '' }}">
+                        <i class="fa-solid fa-folder-closed"></i>
+                        <span>Documents Importants</span>
+                    </a>
+                </li>
+                @endif
             </ul>
 
             <!-- Sidebar footer -->

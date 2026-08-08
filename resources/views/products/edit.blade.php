@@ -82,14 +82,31 @@
         @endif
 
         <div class="form-group">
-            <label class="form-label" for="image">Photo du Produit</label>
+            <label class="form-label" for="image"><i class="fa-solid fa-image" style="color: var(--primary);"></i> Photo du Produit</label>
             @if($product->image)
                 <div style="margin-bottom: 10px;">
                     <img src="{{ asset('public-storage/' . $product->image) }}" alt="Preview" style="height: 100px; border-radius: 8px; border: 1px solid var(--border-color);">
                 </div>
             @endif
-            <input type="file" name="image" id="image" class="form-control">
+            <input type="file" name="image" id="image" class="form-control" accept="image/*">
             <small style="color: var(--text-secondary); margin-top: 5px; display: block;">Format recommandé : JPG/PNG/WebP, Max 2MB. Laissez vide pour conserver l'image actuelle.</small>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="fiche_technique"><i class="fa-solid fa-file-pdf" style="color: #ef4444;"></i> Fiche Technique (Pièce jointe)</label>
+            @if($product->fiche_technique)
+                <div style="margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.05); padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-color);">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <i class="fa-solid fa-file-pdf" style="font-size: 1.4rem; color: #ef4444;"></i>
+                        <span style="font-size: 0.9rem; font-weight: 500;">Fiche technique actuelle</span>
+                    </div>
+                    <a href="{{ asset('public-storage/' . $product->fiche_technique) }}" target="_blank" class="btn btn-secondary btn-sm">
+                        <i class="fa-solid fa-download"></i> Consulter / Télécharger
+                    </a>
+                </div>
+            @endif
+            <input type="file" name="fiche_technique" id="fiche_technique" class="form-control" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.webp">
+            <small style="color: var(--text-secondary); margin-top: 5px; display: block;">Formats acceptés : PDF, Word, Images. Max 10MB. Laissez vide pour conserver le fichier actuel.</small>
         </div>
 
         <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">

@@ -20,6 +20,7 @@ class Product extends Model
         'commission_agent',
         'stock',
         'image',
+        'fiche_technique',
         'is_active',
     ];
 

@@ -81,9 +81,15 @@
         @endif
 
         <div class="form-group">
-            <label class="form-label" for="image">Photo du Produit</label>
-            <input type="file" name="image" id="image" class="form-control">
+            <label class="form-label" for="image"><i class="fa-solid fa-image" style="color: var(--primary);"></i> Photo du Produit</label>
+            <input type="file" name="image" id="image" class="form-control" accept="image/*">
             <small style="color: var(--text-secondary); margin-top: 5px; display: block;">Format recommandé : JPG/PNG/WebP, Max 2MB.</small>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="fiche_technique"><i class="fa-solid fa-file-pdf" style="color: #ef4444;"></i> Fiche Technique (Pièce jointe PDF / Doc)</label>
+            <input type="file" name="fiche_technique" id="fiche_technique" class="form-control" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.webp">
+            <small style="color: var(--text-secondary); margin-top: 5px; display: block;">Joints acceptés : PDF, Word, Images. Max 10MB.</small>
         </div>
 
         <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">

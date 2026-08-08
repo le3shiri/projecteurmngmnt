@@ -50,9 +50,14 @@
                             </div>
                         </td>
                         <td>
-                            <a href="{{ route('prospects.dialer', $file->id) }}" class="btn btn-primary btn-sm">
-                                <i class="fa-solid fa-phone"></i> Commencer les Appels
-                            </a>
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                <a href="{{ route('prospects.dialer', $file->id) }}" class="btn btn-primary btn-sm" title="Lancer le Dialer Automatique">
+                                    <i class="fa-solid fa-phone"></i> Mode Dialer
+                                </a>
+                                <a href="{{ route('prospects.show', $file->id) }}" class="btn btn-secondary btn-sm" title="Voir la liste complète et l'historique des appels">
+                                    <i class="fa-solid fa-list-check"></i> Liste & Historique
+                                </a>
+                            </div>
                         </td>
                     </tr>
                 @empty

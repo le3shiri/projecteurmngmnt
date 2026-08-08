@@ -166,26 +166,38 @@
 
             <div class="form-row">
                 <div class="form-group">
-                    <label class="form-label" for="cin_card">Carte Nationale (Recto-Verso)</label>
+                    <label class="form-label" for="cin_recto"><i class="fa-solid fa-id-card" style="color: var(--primary);"></i> CIN - Recto (Face Avant)</label>
                     <div class="file-upload-wrapper">
-                        <input type="file" name="cin_card" id="cin_card" class="file-upload-input" onchange="updateFileName(this)">
+                        <input type="file" name="cin_recto" id="cin_recto" class="file-upload-input" onchange="updateFileName(this)" accept=".pdf,.jpg,.jpeg,.png,.webp">
                         <div class="file-upload-design">
-                            <i class="fa-solid fa-cloud-arrow-up"></i>
-                            <span style="font-size: 0.8rem;">Choisir ou glisser la CNI (PDF/Image)</span>
+                            <i class="fa-solid fa-id-card"></i>
+                            <span style="font-size: 0.8rem;">Choisir ou glisser CNI Recto (PDF/Image)</span>
                             <span class="file-upload-filename"></span>
                         </div>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label" for="engagement_letter">Lettre d'Engagement signée</label>
+                    <label class="form-label" for="cin_verso"><i class="fa-solid fa-id-card" style="color: var(--primary);"></i> CIN - Verso (Face Arrière)</label>
                     <div class="file-upload-wrapper">
-                        <input type="file" name="engagement_letter" id="engagement_letter" class="file-upload-input" onchange="updateFileName(this)">
+                        <input type="file" name="cin_verso" id="cin_verso" class="file-upload-input" onchange="updateFileName(this)" accept=".pdf,.jpg,.jpeg,.png,.webp">
                         <div class="file-upload-design">
-                            <i class="fa-solid fa-file-contract"></i>
-                            <span style="font-size: 0.8rem;">Choisir ou glisser la lettre (PDF/Image)</span>
+                            <i class="fa-solid fa-id-card"></i>
+                            <span style="font-size: 0.8rem;">Choisir ou glisser CNI Verso (PDF/Image)</span>
                             <span class="file-upload-filename"></span>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 1.25rem;">
+                <label class="form-label" for="engagement_letter"><i class="fa-solid fa-file-contract" style="color: var(--primary);"></i> Lettre d'Engagement signée</label>
+                <div class="file-upload-wrapper">
+                    <input type="file" name="engagement_letter" id="engagement_letter" class="file-upload-input" onchange="updateFileName(this)" accept=".pdf,.jpg,.jpeg,.png,.webp">
+                    <div class="file-upload-design">
+                        <i class="fa-solid fa-file-contract"></i>
+                        <span style="font-size: 0.8rem;">Choisir ou glisser la lettre d'engagement (PDF/Image)</span>
+                        <span class="file-upload-filename"></span>
                     </div>
                 </div>
             </div>

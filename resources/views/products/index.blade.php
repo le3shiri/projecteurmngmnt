@@ -92,16 +92,21 @@
                     <a href="{{ route('products.show', $product->id) }}" class="btn btn-secondary btn-sm" style="flex: 1;" title="Voir Détails">
                         <i class="fa-solid fa-eye"></i> Détails
                     </a>
+                    @if($product->fiche_technique)
+                        <a href="{{ asset('public-storage/' . $product->fiche_technique) }}" target="_blank" class="btn btn-secondary btn-sm" title="Fiche Technique PDF">
+                            <i class="fa-solid fa-file-pdf" style="color: #ef4444;"></i> Fiche
+                        </a>
+                    @endif
                     @if(auth()->user()->hasPermission('manage_products'))
-                        <a href="{{ route('products.edit', $product->id) }}" class="btn btn-secondary btn-sm" style="flex: 1;" title="Modifier">
+                        <a href="{{ route('products.edit', $product->id) }}" class="btn btn-secondary btn-sm" title="Modifier">
                             <i class="fa-solid fa-pen"></i>
                         </a>
                     @endif
                     @if(auth()->user()->hasPermission('delete_products'))
-                        <form action="{{ route('products.destroy', $product->id) }}" method="POST" onsubmit="return confirm('Supprimer ce produit du catalogue ?')" style="display: flex; flex: 1;">
+                        <form action="{{ route('products.destroy', $product->id) }}" method="POST" onsubmit="return confirm('Supprimer ce produit du catalogue ?')" style="display: inline-flex;">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="btn btn-danger btn-sm" style="width: 100%;" title="Supprimer">
+                            <button type="submit" class="btn btn-danger btn-sm" title="Supprimer">
                                 <i class="fa-solid fa-trash-can"></i>
                             </button>
                         </form>

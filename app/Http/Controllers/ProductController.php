@@ -48,6 +48,7 @@ class ProductController extends Controller
             'prix_fournisseur' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'fiche_technique' => 'nullable|file|mimes:pdf,doc,docx,jpeg,png,jpg,webp|max:10240',
         ];
 
         if (auth()->user()->isAdmin()) {
@@ -59,6 +60,11 @@ class ProductController extends Controller
         $imagePath = null;
         if ($request->hasFile('image')) {
             $imagePath = $request->file('image')->store('products', 'public');
+        }
+
+        $fichePath = null;
+        if ($request->hasFile('fiche_technique')) {
+            $fichePath = $request->file('fiche_technique')->store('fiches', 'public');
         }
 
         $categoryName = null;
@@ -80,6 +86,7 @@ class ProductController extends Controller
             'commission_agent' => auth()->user()->isAdmin() ? $request->commission_agent : 0,
             'stock' => $request->stock,
             'image' => $imagePath,
+            'fiche_technique' => $fichePath,
             'is_active' => true,
         ]);
 
@@ -108,6 +115,7 @@ class ProductController extends Controller
             'prix_fournisseur' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'fiche_technique' => 'nullable|file|mimes:pdf,doc,docx,jpeg,png,jpg,webp|max:10240',
         ];
 
         if (auth()->user()->isAdmin()) {
@@ -146,6 +154,13 @@ class ProductController extends Controller
             $data['image'] = $request->file('image')->store('products', 'public');
         }
 
+        if ($request->hasFile('fiche_technique')) {
+            if ($product->fiche_technique) {
+                Storage::disk('public')->delete($product->fiche_technique);
+            }
+            $data['fiche_technique'] = $request->file('fiche_technique')->store('fiches', 'public');
+        }
+
         $product->update($data);
 
         return redirect()->route('products.index')->with('success', 'Produit mis à jour avec succès.');
@@ -155,6 +170,9 @@ class ProductController extends Controller
     {
         if ($product->image) {
             Storage::disk('public')->delete($product->image);
+        }
+        if ($product->fiche_technique) {
+            Storage::disk('public')->delete($product->fiche_technique);
         }
         $product->delete();
 

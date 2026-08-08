@@ -88,15 +88,43 @@ class ProspectController extends Controller
         return redirect()->route('prospects.index')->with('success', 'Fichier prospects importé et assigné avec succès.');
     }
 
-    public function show(ProspectFile $file)
+    public function show(ProspectFile $file, Request $request)
     {
         $user = auth()->user();
         if ($user->isAgent() && $file->agent_id !== $user->id) {
             abort(403);
         }
 
-        $prospects = $file->prospects()->paginate(50);
-        return view('prospects.show', compact('file', 'prospects'));
+        $search = $request->input('search');
+        $status = $request->input('status');
+
+        $query = $file->prospects();
+
+        if ($search) {
+            $query->where(function ($sub) use ($search) {
+                $sub->where('name', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%")
+                    ->orWhere('notes', 'like', "%{$search}%");
+            });
+        }
+
+        if ($status) {
+            $query->where('status', $status);
+        }
+
+        $prospects = $query->paginate(50)->withQueryString();
+
+        // Calculate statistics
+        $stats = [
+            'total' => $file->prospects()->count(),
+            'pending' => $file->prospects()->where('status', 'pending')->count(),
+            'called' => $file->prospects()->where('status', '!=', 'pending')->count(),
+            'interested' => $file->prospects()->where('status', 'interested')->count(),
+            'not_interested' => $file->prospects()->where('status', 'not_interested')->count(),
+            'wrong_number' => $file->prospects()->where('status', 'wrong_number')->count(),
+        ];
+
+        return view('prospects.show', compact('file', 'prospects', 'search', 'status', 'stats'));
     }
 
     public function dialer(ProspectFile $file)
@@ -120,7 +148,7 @@ class ProspectController extends Controller
     public function updateProspect(Request $request, Prospect $prospect)
     {
         $request->validate([
-            'status' => 'required|in:called,interested,not_interested,wrong_number',
+            'status' => 'required|in:pending,called,interested,not_interested,wrong_number',
             'notes' => 'nullable|string',
         ]);
 
@@ -129,6 +157,10 @@ class ProspectController extends Controller
             'notes' => $request->notes,
             'called_at' => now(),
         ]);
+
+        if ($request->has('redirect_back') || $request->header('referer') && str_contains($request->header('referer'), 'prospect-files/')) {
+            return back()->with('success', 'Fiche prospect mise à jour avec succès.');
+        }
 
         return redirect()->route('prospects.dialer', $prospect->prospect_file_id)
             ->with('success', 'Statut du prospect mis à jour.');

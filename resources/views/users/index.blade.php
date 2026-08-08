@@ -47,14 +47,27 @@
                         <td>
                             @if($user->isAgent())
                                 <div style="font-weight: 500;">{{ $user->cin ?? 'Non défini' }}</div>
-                                <div style="display: flex; gap: 10px; margin-top: 5px; font-size: 0.85rem;">
-                                    @if($user->cin_card_path)
-                                        <a href="{{ asset('public-storage/' . $user->cin_card_path) }}" target="_blank" title="Carte Nationale (Recto/Verso)" style="color: var(--primary); display: inline-flex; align-items: center; gap: 3px;">
-                                            <i class="fa-solid fa-id-card"></i> CNI
+                                <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 5px; font-size: 0.82rem;">
+                                    @php
+                                        $recto = $user->cin_recto_path ?: $user->cin_card_path;
+                                    @endphp
+                                    @if($recto)
+                                        <a href="{{ asset('public-storage/' . $recto) }}" target="_blank" title="Carte Nationale (Recto)" style="color: var(--primary); display: inline-flex; align-items: center; gap: 3px;">
+                                            <i class="fa-solid fa-id-card"></i> Recto
                                         </a>
                                     @else
-                                        <span style="color: var(--text-secondary); opacity: 0.5;" title="Carte Nationale manquante">
-                                            <i class="fa-solid fa-id-card"></i> -
+                                        <span style="color: var(--text-secondary); opacity: 0.5;" title="CNI Recto manquante">
+                                            <i class="fa-solid fa-id-card"></i> R-
+                                        </span>
+                                    @endif
+
+                                    @if($user->cin_verso_path)
+                                        <a href="{{ asset('public-storage/' . $user->cin_verso_path) }}" target="_blank" title="Carte Nationale (Verso)" style="color: var(--primary); display: inline-flex; align-items: center; gap: 3px;">
+                                            <i class="fa-solid fa-id-card"></i> Verso
+                                        </a>
+                                    @else
+                                        <span style="color: var(--text-secondary); opacity: 0.5;" title="CNI Verso manquante">
+                                            <i class="fa-solid fa-id-card"></i> V-
                                         </span>
                                     @endif
                                     

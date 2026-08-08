@@ -12,6 +12,7 @@ use App\Http\Controllers\ProspectController;
 use App\Http\Controllers\TrainingController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CompanyDocumentController;
 
 // Auth Routes
 Route::get('login', [AuthController::class, 'showLogin'])->name('login');
@@ -211,5 +212,15 @@ Route::middleware(['role'])->group(function () {
     Route::middleware(['permission:view_logistics'])->group(function () {
         Route::get('supplier/orders', [SupplierController::class, 'index'])->name('supplier.index');
         Route::post('supplier/orders/{supplierOrder}/status', [SupplierController::class, 'updateStatus'])->name('supplier.status');
+    });
+
+    // Company Important Documents
+    Route::middleware(['permission:view_documents'])->group(function () {
+        Route::get('company-documents', [CompanyDocumentController::class, 'index'])->name('company_documents.index');
+    });
+    Route::middleware(['permission:manage_documents'])->group(function () {
+        Route::post('company-documents', [CompanyDocumentController::class, 'store'])->name('company_documents.store');
+        Route::put('company-documents/{companyDocument}', [CompanyDocumentController::class, 'update'])->name('company_documents.update');
+        Route::delete('company-documents/{companyDocument}', [CompanyDocumentController::class, 'destroy'])->name('company_documents.destroy');
     });
 });

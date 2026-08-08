@@ -29,6 +29,8 @@ class User extends Authenticatable
         'access_code',
         'cin',
         'cin_card_path',
+        'cin_recto_path',
+        'cin_verso_path',
         'engagement_letter_path',
     ];
 

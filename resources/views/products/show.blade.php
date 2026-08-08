@@ -198,8 +198,48 @@
                 @endif
             </div>
 
+            <!-- Fiche Technique Block -->
+            <div style="margin-bottom: 1.5rem; background: rgba(15, 23, 42, 0.4); border: 1px solid var(--border-color); border-radius: var(--border-radius); padding: 1.25rem;">
+                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 44px; height: 44px; border-radius: 10px; background: rgba(239, 68, 68, 0.15); display: flex; align-items: center; justify-content: center; color: #ef4444;">
+                            <i class="fa-solid fa-file-pdf" style="font-size: 1.5rem;"></i>
+                        </div>
+                        <div>
+                            <h4 style="font-size: 0.95rem; font-weight: 600; margin: 0; color: var(--text-primary);">Fiche Technique Produit</h4>
+                            <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 2px 0 0 0;">
+                                @if($product->fiche_technique)
+                                    Spécifications techniques complètes et documentation téléchargeable
+                                @else
+                                    Aucune pièce jointe technique n'a été téléversée pour ce produit.
+                                @endif
+                            </p>
+                        </div>
+                    </div>
+                    @if($product->fiche_technique)
+                        <a href="{{ asset('public-storage/' . $product->fiche_technique) }}" target="_blank" class="btn btn-primary" style="background: linear-gradient(135deg, #ef4444, #dc2626); border: none;">
+                            <i class="fa-solid fa-download"></i> Télécharger Fiche Technique
+                        </a>
+                    @elseif(auth()->user()->hasPermission('manage_products'))
+                        <a href="{{ route('products.edit', $product->id) }}" class="btn btn-secondary btn-sm">
+                            <i class="fa-solid fa-paperclip"></i> Joindre une fiche
+                        </a>
+                    @endif
+                </div>
+            </div>
+
             <!-- Technical details list -->
             <ul class="tech-details-list">
+                <li class="tech-details-item">
+                    <span class="tech-details-label">Fiche technique</span>
+                    <span class="tech-details-value">
+                        @if($product->fiche_technique)
+                            <span style="color: var(--success);"><i class="fa-solid fa-circle-check"></i> Pièce jointe disponible</span>
+                        @else
+                            <span style="color: var(--text-secondary);"><i class="fa-solid fa-circle-minus"></i> Non renseignée</span>
+                        @endif
+                    </span>
+                </li>
                 <li class="tech-details-item">
                     <span class="tech-details-label">Date d'enregistrement</span>
                     <span class="tech-details-value">{{ $product->created_at ? $product->created_at->format('d/m/Y à H:i') : '-' }}</span>
