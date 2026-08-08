@@ -224,3 +224,17 @@ Route::middleware(['role'])->group(function () {
         Route::delete('company-documents/{companyDocument}', [CompanyDocumentController::class, 'destroy'])->name('company_documents.destroy');
     });
 });
+
+// Standalone Web Migration Runner Route
+Route::get('/migrate-db', function () {
+    try {
+        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        $output = \Illuminate\Support\Facades\Artisan::output();
+        \Illuminate\Support\Facades\Artisan::call('config:clear');
+        \Illuminate\Support\Facades\Artisan::call('cache:clear');
+        \Illuminate\Support\Facades\Artisan::call('view:clear');
+        return "<h2 style='color:#10b981; font-family: sans-serif;'>✓ Migrations effectuées avec succès !</h2><pre style='background:#0f172a; color:#fff; padding:15px; border-radius:8px;'>{$output}</pre>";
+    } catch (\Throwable $e) {
+        return "<h2 style='color:#ef4444; font-family: sans-serif;'>❌ Erreur de migration :</h2><pre style='background:#0f172a; color:#ef4444; padding:15px; border-radius:8px;'>{$e->getMessage()}</pre>";
+    }
+});
