@@ -138,10 +138,12 @@ class OrderController extends Controller
 
         // 5. Create items & deduct stock
         $totalCommission = 0;
+        $agentId = auth()->id();
         foreach ($request->items as $itemData) {
             $product = Product::find($itemData['product_id']);
             $itemTotal = $itemData['quantity'] * $itemData['unit_price'];
-            $itemCommission = $itemData['quantity'] * ($product->commission_agent ?? 0);
+            $agentCommissionRate = $product->getCommissionForAgent($agentId);
+            $itemCommission = $itemData['quantity'] * $agentCommissionRate;
             $totalCommission += $itemCommission;
 
             OrderItem::create([
@@ -152,7 +154,7 @@ class OrderController extends Controller
                 'quantity' => $itemData['quantity'],
                 'unit_price' => $itemData['unit_price'],
                 'prix_fournisseur' => $product->prix_fournisseur ?? 0,
-                'commission_agent' => $product->commission_agent ?? 0,
+                'commission_agent' => $agentCommissionRate,
                 'total' => $itemTotal,
             ]);
 

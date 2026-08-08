@@ -34,7 +34,8 @@ class ProductController extends Controller
     public function create()
     {
         $categories = \App\Models\Category::orderBy('name')->get();
-        return view('products.create', compact('categories'));
+        $agents = \App\Models\User::where('role', 'agent')->where('is_active', true)->orderBy('name')->get();
+        return view('products.create', compact('categories', 'agents'));
     }
 
     public function store(Request $request)
@@ -49,6 +50,8 @@ class ProductController extends Controller
             'stock' => 'required|integer|min:0',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'fiche_technique' => 'nullable|file|mimes:pdf,doc,docx,jpeg,png,jpg,webp|max:10240',
+            'agent_commissions' => 'nullable|array',
+            'agent_commissions.*' => 'nullable|numeric|min:0',
         ];
 
         if (auth()->user()->isAdmin()) {
@@ -75,7 +78,7 @@ class ProductController extends Controller
             }
         }
 
-        Product::create([
+        $product = Product::create([
             'code' => $request->code,
             'name' => $request->name,
             'description' => $request->description,
@@ -90,18 +93,32 @@ class ProductController extends Controller
             'is_active' => true,
         ]);
 
+        if (auth()->user()->isAdmin() && $request->has('agent_commissions') && is_array($request->agent_commissions)) {
+            foreach ($request->agent_commissions as $agentId => $val) {
+                if ($val !== null && $val !== '') {
+                    \App\Models\AgentProductCommission::updateOrCreate(
+                        ['product_id' => $product->id, 'agent_id' => $agentId],
+                        ['commission' => $val]
+                    );
+                }
+            }
+        }
+
         return redirect()->route('products.index')->with('success', 'Produit ajouté avec succès au catalogue.');
     }
 
     public function show(Product $product)
     {
+        $product->load(['category', 'agentCommissions.agent']);
         return view('products.show', compact('product'));
     }
 
     public function edit(Product $product)
     {
         $categories = \App\Models\Category::orderBy('name')->get();
-        return view('products.edit', compact('product', 'categories'));
+        $agents = \App\Models\User::where('role', 'agent')->where('is_active', true)->orderBy('name')->get();
+        $product->load('agentCommissions');
+        return view('products.edit', compact('product', 'categories', 'agents'));
     }
 
     public function update(Request $request, Product $product)
@@ -116,6 +133,8 @@ class ProductController extends Controller
             'stock' => 'required|integer|min:0',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'fiche_technique' => 'nullable|file|mimes:pdf,doc,docx,jpeg,png,jpg,webp|max:10240',
+            'agent_commissions' => 'nullable|array',
+            'agent_commissions.*' => 'nullable|numeric|min:0',
         ];
 
         if (auth()->user()->isAdmin()) {
@@ -162,6 +181,19 @@ class ProductController extends Controller
         }
 
         $product->update($data);
+
+        if (auth()->user()->isAdmin() && $request->has('agent_commissions') && is_array($request->agent_commissions)) {
+            foreach ($request->agent_commissions as $agentId => $val) {
+                if ($val !== null && $val !== '') {
+                    \App\Models\AgentProductCommission::updateOrCreate(
+                        ['product_id' => $product->id, 'agent_id' => $agentId],
+                        ['commission' => $val]
+                    );
+                } else {
+                    \App\Models\AgentProductCommission::where('product_id', $product->id)->where('agent_id', $agentId)->delete();
+                }
+            }
+        }
 
         return redirect()->route('products.index')->with('success', 'Produit mis à jour avec succès.');
     }

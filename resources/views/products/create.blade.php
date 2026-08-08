@@ -74,9 +74,36 @@
         </div>
 
         @if(auth()->user()->isAdmin())
-        <div class="form-group">
-            <label class="form-label" for="commission_agent">Commission Agent (DH par unité vendue)</label>
-            <input type="number" step="0.01" name="commission_agent" id="commission_agent" class="form-control" value="{{ old('commission_agent', '0.00') }}" min="0" required>
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: var(--border-radius); padding: 1.25rem; margin-bottom: 1.5rem;">
+            <div class="form-group" style="margin-bottom: 1rem;">
+                <label class="form-label" for="commission_agent" style="font-weight: 700;">
+                    <i class="fa-solid fa-coins" style="color: var(--warning);"></i> Commission Par Défaut (DH par unité)
+                </label>
+                <input type="number" step="0.01" name="commission_agent" id="commission_agent" class="form-control" value="{{ old('commission_agent', '0.00') }}" min="0" required placeholder="Ex: 50.00">
+                <small style="color: var(--text-secondary);">S'applique automatiquement aux agents qui n'ont pas de commission personnalisée.</small>
+            </div>
+
+            @if(isset($agents) && count($agents) > 0)
+                <label class="form-label" style="font-weight: 700; margin-top: 1rem; display: block;">
+                    <i class="fa-solid fa-user-gear" style="color: var(--primary);"></i> Commissions Particulières par Agent (Optionnel)
+                </label>
+                <p style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 0.75rem;">
+                    Définissez un montant spécifique pour chaque agent si sa commission diffère sur ce produit :
+                </p>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px;">
+                    @foreach($agents as $ag)
+                        <div style="background: rgba(0,0,0,0.2); padding: 8px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05);">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary); display: block; margin-bottom: 4px;">
+                                {{ $ag->name }}
+                            </label>
+                            <div style="display: flex; align-items: center; gap: 5px;">
+                                <input type="number" step="0.01" name="agent_commissions[{{ $ag->id }}]" class="form-control" placeholder="Défaut" value="{{ old('agent_commissions.'.$ag->id) }}" min="0" style="padding: 4px 8px; font-size: 0.85rem;">
+                                <span style="font-size: 0.8rem; color: var(--text-secondary);">DH</span>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
         </div>
         @endif
 

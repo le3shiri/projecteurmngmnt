@@ -37,4 +37,23 @@ class Product extends Model
     {
         return $this->belongsTo(Category::class, 'category_id');
     }
+
+    public function agentCommissions()
+    {
+        return $this->hasMany(AgentProductCommission::class);
+    }
+
+    public function getCommissionForAgent($agentId)
+    {
+        if (!$agentId) {
+            return (float) ($this->commission_agent ?? 0);
+        }
+
+        $specific = $this->agentCommissions->firstWhere('agent_id', $agentId);
+        if ($specific && $specific->commission !== null) {
+            return (float) $specific->commission;
+        }
+
+        return (float) ($this->commission_agent ?? 0);
+    }
 }

@@ -192,11 +192,28 @@
                 <!-- Commission Rate (Admin only) -->
                 @if(auth()->user()->isAdmin())
                     <div class="price-box commission">
-                        <span class="price-box-label">Commission Agent Fixe</span>
+                        <span class="price-box-label">Commission Agent Défaut</span>
                         <span class="price-box-value" style="color: var(--success);">+{{ number_format($product->commission_agent ?? 0, 2, ',', ' ') }} <span style="font-size: 0.9rem; font-weight: 500;">DH</span></span>
                     </div>
                 @endif
             </div>
+
+            <!-- Agent Specific Commissions (Admin only) -->
+            @if(auth()->user()->isAdmin() && isset($product->agentCommissions) && $product->agentCommissions->count() > 0)
+                <div style="margin-bottom: 1.5rem; background: rgba(15, 23, 42, 0.4); border: 1px solid var(--border-color); border-radius: var(--border-radius); padding: 1.25rem;">
+                    <h4 style="font-size: 0.95rem; font-weight: 600; margin: 0 0 10px 0; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-user-gear" style="color: var(--primary);"></i> Commissions Spécifiques Attribuées
+                    </h4>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        @foreach($product->agentCommissions as $comm)
+                            <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; color: var(--text-primary); display: inline-flex; align-items: center; gap: 6px;">
+                                <strong>{{ $comm->agent->name ?? 'Agent #' . $comm->agent_id }} :</strong>
+                                <span style="color: var(--success); font-weight: bold;">{{ number_format($comm->commission, 2, ',', ' ') }} DH</span>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
 
             <!-- Fiche Technique Block -->
             <div style="margin-bottom: 1.5rem; background: rgba(15, 23, 42, 0.4); border: 1px solid var(--border-color); border-radius: var(--border-radius); padding: 1.25rem;">
