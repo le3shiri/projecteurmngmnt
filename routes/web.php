@@ -157,7 +157,7 @@ Route::middleware(['role'])->group(function () {
         Route::get('orders/create', [OrderController::class, 'create'])->name('orders.create');
         Route::post('orders', [OrderController::class, 'store'])->name('orders.store');
     });
-    Route::middleware(['permission:view_orders'])->group(function () {
+    Route::middleware(['permission:view_orders,view_logistics'])->group(function () {
         Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
         Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
         Route::get('orders/{order}/pdf/{type}', [OrderController::class, 'downloadPdf'])->name('orders.pdf');
@@ -166,6 +166,7 @@ Route::middleware(['role'])->group(function () {
         Route::post('orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.updateStatus');
         Route::post('orders/{order}/payment', [OrderController::class, 'addPayment'])->name('orders.addPayment');
     });
+    Route::delete('orders/{order}', [OrderController::class, 'destroy'])->name('orders.destroy');
 
     // Trainings
     Route::middleware(['permission:view_trainings'])->group(function () {

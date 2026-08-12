@@ -95,10 +95,19 @@
                             <span class="badge badge-{{ $order->status }}">{{ $order->status }}</span>
                         </td>
                         <td>
-                            <div style="display: flex; gap: 8px;">
+                            <div style="display: flex; gap: 8px; align-items: center;">
                                 <a href="{{ route('orders.show', $order->id) }}" class="btn btn-secondary btn-sm">
                                     <i class="fa-solid fa-eye"></i> Gérer
                                 </a>
+                                @if(auth()->user()->isAdmin())
+                                    <form action="{{ route('orders.destroy', $order->id) }}" method="POST" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette commande ? Cette action est irréversible.');" style="display: inline;">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-danger btn-sm" title="Supprimer la commande">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </form>
+                                @endif
                             </div>
                         </td>
                     </tr>

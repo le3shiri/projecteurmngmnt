@@ -121,87 +121,63 @@
 
     <!-- Role Selection Tabs -->
     <div class="role-tabs">
-        <button type="button" class="role-tab-btn active" onclick="switchRoleTab(event, 'agent')">
-            <i class="fa-solid fa-user-tie"></i> Agent Commercial
-        </button>
-        <button type="button" class="role-tab-btn" onclick="switchRoleTab(event, 'supplier')">
-            <i class="fa-solid fa-truck"></i> Fournisseur (Supplier)
-        </button>
+        @foreach($roles as $roleKey => $roleLabel)
+            <button type="button" class="role-tab-btn {{ $loop->first ? 'active' : '' }}" onclick="switchRoleTab(event, '{{ $roleKey }}', '{{ $roleLabel }}')">
+                @if($roleKey === 'agent')
+                    <i class="fa-solid fa-user-tie"></i>
+                @elseif($roleKey === 'media_buyer')
+                    <i class="fa-solid fa-bullhorn"></i>
+                @else
+                    <i class="fa-solid fa-truck"></i>
+                @endif
+                {{ $roleLabel }}
+            </button>
+        @endforeach
     </div>
 
     <!-- Actions Panel -->
     <div class="glass-card" style="margin-bottom: 1.5rem; padding: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
         <div>
-            <h3 id="active-role-title" style="margin: 0; color: #fff; font-size: 1.25rem; font-weight: 700;">Configuration : Agent Commercial</h3>
+            <h3 id="active-role-title" style="margin: 0; color: #fff; font-size: 1.25rem; font-weight: 700;">Configuration : {{ reset($roles) }}</h3>
         </div>
         <button type="submit" class="btn btn-primary">
             <i class="fa-solid fa-floppy-disk"></i> Enregistrer les modifications
         </button>
     </div>
 
-    <!-- Agent Permissions Panel -->
-    <div id="role-panel-agent" class="role-panel">
-        <div class="permission-modules-grid">
-            @foreach($modules as $moduleName => $permissions)
-                <div class="glass-card" style="margin: 0; display: flex; flex-direction: column; justify-content: space-between;">
-                    <div>
-                        <h4 style="margin: 0 0 15px 0; color: var(--primary); font-weight: 700; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; display: flex; align-items: center; gap: 10px;">
-                            <i class="fa-solid fa-layer-group"></i> {{ $moduleName }}
-                        </h4>
+    @foreach($roles as $roleKey => $roleLabel)
+        <!-- {{ $roleLabel }} Permissions Panel -->
+        <div id="role-panel-{{ $roleKey }}" class="role-panel" style="display: {{ $loop->first ? 'block' : 'none' }};">
+            <div class="permission-modules-grid">
+                @foreach($modules as $moduleName => $permissions)
+                    <div class="glass-card" style="margin: 0; display: flex; flex-direction: column; justify-content: space-between;">
                         <div>
-                            @foreach($permissions as $key => $description)
-                                <div class="permission-item">
-                                    <div style="max-width: 80%;">
-                                        <div style="font-weight: 600; color: #fff; font-size: 0.95rem;">{{ $description }}</div>
-                                        <code style="font-size: 0.75rem; color: var(--text-secondary);">{{ $key }}</code>
+                            <h4 style="margin: 0 0 15px 0; color: var(--primary); font-weight: 700; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; display: flex; align-items: center; gap: 10px;">
+                                <i class="fa-solid fa-layer-group"></i> {{ $moduleName }}
+                            </h4>
+                            <div>
+                                @foreach($permissions as $key => $description)
+                                    <div class="permission-item">
+                                        <div style="max-width: 80%;">
+                                            <div style="font-weight: 600; color: #fff; font-size: 0.95rem;">{{ $description }}</div>
+                                            <code style="font-size: 0.75rem; color: var(--text-secondary);">{{ $key }}</code>
+                                        </div>
+                                        <div>
+                                            <label class="switch">
+                                                <input type="checkbox" name="permissions[{{ $roleKey }}][]" value="{{ $key }}" 
+                                                    {{ in_array($key, $currentPermissions[$roleKey] ?? []) ? 'checked' : '' }}>
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <label class="switch">
-                                            <input type="checkbox" name="permissions[agent][]" value="{{ $key }}" 
-                                                {{ in_array($key, $currentPermissions['agent'] ?? []) ? 'checked' : '' }}>
-                                            <span class="slider"></span>
-                                        </label>
-                                    </div>
-                                </div>
-                            @endforeach
+                                @endforeach
+                            </div>
                         </div>
                     </div>
-                </div>
-            @endforeach
+                @endforeach
+            </div>
         </div>
-    </div>
-
-    <!-- Supplier Permissions Panel -->
-    <div id="role-panel-supplier" class="role-panel" style="display: none;">
-        <div class="permission-modules-grid">
-            @foreach($modules as $moduleName => $permissions)
-                <div class="glass-card" style="margin: 0; display: flex; flex-direction: column; justify-content: space-between;">
-                    <div>
-                        <h4 style="margin: 0 0 15px 0; color: var(--primary); font-weight: 700; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; display: flex; align-items: center; gap: 10px;">
-                            <i class="fa-solid fa-layer-group"></i> {{ $moduleName }}
-                        </h4>
-                        <div>
-                            @foreach($permissions as $key => $description)
-                                <div class="permission-item">
-                                    <div style="max-width: 80%;">
-                                        <div style="font-weight: 600; color: #fff; font-size: 0.95rem;">{{ $description }}</div>
-                                        <code style="font-size: 0.75rem; color: var(--text-secondary);">{{ $key }}</code>
-                                    </div>
-                                    <div>
-                                        <label class="switch">
-                                            <input type="checkbox" name="permissions[supplier][]" value="{{ $key }}" 
-                                                {{ in_array($key, $currentPermissions['supplier'] ?? []) ? 'checked' : '' }}>
-                                            <span class="slider"></span>
-                                        </label>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-                </div>
-            @endforeach
-        </div>
-    </div>
+    @endforeach
 
     <div style="margin-top: 2rem; display: flex; justify-content: flex-end;">
         <button type="submit" class="btn btn-primary" style="padding: 12px 30px;">
@@ -211,22 +187,18 @@
 </form>
 
 <script>
-    function switchRoleTab(event, role) {
-        // Toggle tab buttons
+    function switchRoleTab(event, roleKey, roleLabel) {
         document.querySelectorAll('.role-tab-btn').forEach(btn => {
             btn.classList.remove('active');
         });
         event.currentTarget.classList.add('active');
 
-        // Toggle role panels
         document.querySelectorAll('.role-panel').forEach(panel => {
             panel.style.display = 'none';
         });
-        document.getElementById('role-panel-' + role).style.display = 'block';
+        document.getElementById('role-panel-' + roleKey).style.display = 'block';
 
-        // Update active title text
-        const titleText = role === 'agent' ? 'Configuration : Agent Commercial' : 'Configuration : Fournisseur';
-        document.getElementById('active-role-title').innerText = titleText;
+        document.getElementById('active-role-title').innerText = 'Configuration : ' + roleLabel;
     }
 </script>
 @endsection

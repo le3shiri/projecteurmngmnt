@@ -75,12 +75,21 @@ class User extends Authenticatable
         return $this->role === 'agent';
     }
 
+    public function isMediaBuyer(): bool
+    {
+        return $this->role === 'media_buyer';
+    }
+
     /**
      * Check if user has specific permission.
      */
     public function hasPermission(string $permission): bool
     {
         if ($this->isAdmin()) {
+            return true;
+        }
+
+        if ($this->isSupplier() && in_array($permission, ['view_dashboard', 'view_logistics', 'view_orders', 'view_products'])) {
             return true;
         }
 

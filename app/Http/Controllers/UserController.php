@@ -25,7 +25,7 @@ class UserController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            'role' => 'required|in:admin,supplier,agent',
+            'role' => 'required|in:admin,supplier,agent,media_buyer',
             'commission_rate' => 'nullable|numeric|min:0|max:100',
             'phone' => 'nullable|string',
             'access_code' => 'nullable|string|max:20|unique:users,access_code',
@@ -84,7 +84,7 @@ class UserController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
-            'role' => 'required|in:admin,supplier,agent',
+            'role' => 'required|in:admin,supplier,agent,media_buyer',
             'commission_rate' => 'nullable|numeric|min:0|max:100',
             'phone' => 'nullable|string',
             'access_code' => 'required|string|max:20|unique:users,access_code,' . $user->id,
@@ -174,7 +174,8 @@ class UserController extends Controller
             'Commandes & Ventes' => [
                 'view_orders' => 'Consulter la liste des commandes',
                 'manage_orders' => 'Créer une nouvelle commande (vente)',
-                'update_order_status' => 'Modifier le statut des commandes & encaisser les paiements'
+                'update_order_status' => 'Modifier le statut des commandes & encaisser les paiements',
+                'delete_orders' => 'Supprimer des commandes (Réservé à l\'administrateur)'
             ],
             'Prospection Téléphonique' => [
                 'view_prospects' => 'Accéder et appeler les prospects assignés',
@@ -191,11 +192,15 @@ class UserController extends Controller
             'Documents Importants (Société)' => [
                 'view_documents' => 'Consulter la bibliothèque de documents officiels',
                 'manage_documents' => 'Ajouter, modifier et supprimer des documents officiels'
+            ],
+            'Logistique & Expéditions (Fournisseur)' => [
+                'view_logistics' => 'Accéder aux commandes logistiques et fiches d\'expédition'
             ]
         ];
 
         $roles = [
             'agent' => 'Agent Commercial',
+            'media_buyer' => 'Media Buyer',
             'supplier' => 'Fournisseur'
         ];
 
@@ -208,7 +213,7 @@ class UserController extends Controller
 
     public function permissionsUpdate(Request $request)
     {
-        $roles = ['agent', 'supplier'];
+        $roles = ['agent', 'media_buyer', 'supplier'];
         $permissionsInput = $request->input('permissions', []);
 
         \DB::transaction(function () use ($roles, $permissionsInput) {

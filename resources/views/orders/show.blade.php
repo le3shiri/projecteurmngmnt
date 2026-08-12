@@ -8,7 +8,16 @@
         <h1 class="page-title">Commande {{ $order->code }}</h1>
         <p style="color: var(--text-secondary); margin-top: 5px;">Créée le {{ $order->created_at->format('d/m/Y à H:i') }} par {{ $order->agent->name ?? 'Direct' }}</p>
     </div>
-    <div style="display: flex; gap: 10px;">
+    <div style="display: flex; gap: 10px; align-items: center;">
+        @if(auth()->user()->isAdmin())
+            <form action="{{ route('orders.destroy', $order->id) }}" method="POST" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette commande ? Cette action est irréversible.');" style="display: inline;">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn btn-danger">
+                    <i class="fa-solid fa-trash"></i> Supprimer la Commande
+                </button>
+            </form>
+        @endif
         <a href="{{ route('orders.index') }}" class="btn btn-secondary">
             <i class="fa-solid fa-arrow-left"></i> Liste des Ventes
         </a>

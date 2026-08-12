@@ -21,13 +21,13 @@
     <div class="app-container">
         <!-- Sidebar Navigation -->
         <aside class="sidebar">
-            <a href="{{ route('dashboard') }}" class="sidebar-logo">
+            <a href="{{ auth()->user()->isSupplier() ? route('supplier.index') : route('dashboard') }}" class="sidebar-logo">
                 <i class="fa-solid fa-circle-notch fa-spin"></i>
                 <span>ProjetEUR CRM</span>
             </a>
             
             <ul class="sidebar-menu">
-                @if(auth()->user()->hasPermission('view_dashboard'))
+                @if(!auth()->user()->isSupplier() && auth()->user()->hasPermission('view_dashboard'))
                 <li>
                     <a href="{{ route('dashboard') }}" class="sidebar-link {{ Route::is('dashboard') ? 'active' : '' }}">
                         <i class="fa-solid fa-chart-line"></i>
@@ -41,13 +41,13 @@
                 <li>
                     <a href="{{ route('users.index') }}" class="sidebar-link {{ Route::is('users.*') && !Route::is('permissions.*') ? 'active' : '' }}">
                         <i class="fa-solid fa-users"></i>
-                        <span>Équipe / Agents</span>
+                        <span>Équipe</span>
                     </a>
                 </li>
                 <li>
                     <a href="{{ route('permissions.index') }}" class="sidebar-link {{ Route::is('permissions.*') ? 'active' : '' }}">
                         <i class="fa-solid fa-shield-halved"></i>
-                        <span>Permissions & Rôles</span>
+                        <span>Permissions</span>
                     </a>
                 </li>
                 @endif
@@ -62,45 +62,43 @@
                 </li>
                 @endif
 
-                <!-- Catalog Products -->
+                <!-- Products & Categories -->
                 @if(auth()->user()->hasPermission('view_products'))
                 <li>
-                    <a href="{{ route('products.index') }}" class="sidebar-link {{ Route::is('products.*') && !Route::is('categories.*') ? 'active' : '' }}">
+                    <a href="{{ route('products.index') }}" class="sidebar-link {{ Route::is('products.*') || Route::is('categories.*') ? 'active' : '' }}">
                         <i class="fa-solid fa-box-open"></i>
-                        <span>Catalogue & Stock</span>
-                    </a>
-                </li>
-                @endif
-
-                @if(auth()->user()->hasPermission('manage_categories'))
-                <li>
-                    <a href="{{ route('categories.index') }}" class="sidebar-link {{ Route::is('categories.*') ? 'active' : '' }}" style="padding-left: 2.25rem; font-size: 0.85rem;">
-                        <i class="fa-solid fa-folder-tree" style="font-size: 0.8rem; opacity: 0.8;"></i>
-                        <span>Catégories Produits</span>
+                        <span>Produit</span>
                     </a>
                 </li>
                 @endif
 
                 <!-- Orders -->
-                @if(auth()->user()->hasPermission('view_orders'))
+                @if(!auth()->user()->isSupplier() && auth()->user()->hasPermission('view_orders'))
                 <li>
                     <a href="{{ route('orders.index') }}" class="sidebar-link {{ Route::is('orders.*') ? 'active' : '' }}">
                         <i class="fa-solid fa-receipt"></i>
-                        <span>Ventes & Commandes</span>
+                        <span>Commandes</span>
                     </a>
                 </li>
                 @endif
 
-                {{-- Supplier Dispatching Dashboard (Disabled)
-                @if(auth()->user()->hasPermission('view_logistics'))
+                @if(auth()->user()->isAdmin() || auth()->user()->isSupplier() || auth()->user()->hasPermission('view_logistics'))
                 <li>
                     <a href="{{ route('supplier.index') }}" class="sidebar-link {{ Route::is('supplier.*') ? 'active' : '' }}">
                         <i class="fa-solid fa-truck-ramp-box"></i>
                         <span>Commandes Fournisseur</span>
+                        @php
+                            $pendingSupplierCount = \App\Models\SupplierOrder::where('status', 'pending')
+                                ->whereHas('order', function ($q) {
+                                    $q->whereIn('status', ['confirmed', 'shipped', 'delivered']);
+                                })->count();
+                        @endphp
+                        @if($pendingSupplierCount > 0)
+                            <span class="badge badge-warning" style="margin-left: auto; font-size: 0.72rem; padding: 2px 7px; border-radius: 10px;">{{ $pendingSupplierCount }}</span>
+                        @endif
                     </a>
                 </li>
                 @endif
-                --}}
 
                 <!-- Prospects / Dialer lists -->
                 @if(auth()->user()->hasPermission('view_prospects'))
@@ -127,7 +125,7 @@
                 <li>
                     <a href="{{ route('trainings.index') }}" class="sidebar-link {{ Route::is('trainings.*') ? 'active' : '' }}">
                         <i class="fa-solid fa-graduation-cap"></i>
-                        <span>Espace Formation</span>
+                        <span>Formation</span>
                     </a>
                 </li>
                 @endif

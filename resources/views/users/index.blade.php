@@ -37,9 +37,15 @@
                         <td>{{ $user->email }}</td>
                         <td>{{ $user->phone ?? '-' }}</td>
                         <td>
-                            <span class="badge badge-{{ $user->role === 'admin' ? 'confirmed' : ($user->role === 'supplier' ? 'info' : 'pending') }}">
-                                {{ $user->role }}
-                            </span>
+                            @if($user->role === 'admin')
+                                <span class="badge badge-confirmed">Admin</span>
+                            @elseif($user->role === 'media_buyer')
+                                <span class="badge" style="background: rgba(168, 85, 247, 0.15); color: #c084fc;">Media Buyer</span>
+                            @elseif($user->role === 'supplier')
+                                <span class="badge badge-info">Fournisseur</span>
+                            @else
+                                <span class="badge badge-pending">Agent</span>
+                            @endif
                         </td>
                         <td style="font-family: monospace; font-weight: bold; color: var(--primary); letter-spacing: 1px;">
                             {{ $user->access_code }}

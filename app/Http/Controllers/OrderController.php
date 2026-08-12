@@ -23,6 +23,10 @@ class OrderController extends Controller
         $startDate = $request->input('start_date');
         $endDate = $request->input('end_date');
 
+        if ($user->isSupplier()) {
+            return redirect()->route('supplier.index');
+        }
+
         // Security check: Agents see only their orders.
         $query = Order::with(['customer', 'agent']);
         
@@ -299,5 +303,47 @@ class OrderController extends Controller
         }
 
         return back()->with('success', 'Paiement enregistré avec succès.');
+    }
+
+    public function destroy(Order $order)
+    {
+        $user = auth()->user();
+
+        if (!$user || !$user->isAdmin()) {
+            abort(403, 'Seul un administrateur peut supprimer une commande.');
+        }
+
+        \DB::transaction(function () use ($order) {
+            // Restore product stock if order was not cancelled
+            if ($order->status !== 'cancelled') {
+                foreach ($order->items as $item) {
+                    if ($item->product_id) {
+                        $product = Product::find($item->product_id);
+                        if ($product) {
+                            $product->increment('stock', $item->quantity);
+                        }
+                    }
+                }
+            }
+
+            // Delete custom logo file if exists
+            if ($order->logo_path) {
+                Storage::disk('public')->delete($order->logo_path);
+            }
+
+            // Delete related records
+            $order->items()->delete();
+            $order->payments()->delete();
+            if ($order->commission) {
+                $order->commission()->delete();
+            }
+            if ($order->supplierOrder) {
+                $order->supplierOrder()->delete();
+            }
+
+            $order->delete();
+        });
+
+        return redirect()->route('orders.index')->with('success', 'Commande supprimée avec succès.');
     }
 }

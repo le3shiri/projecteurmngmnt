@@ -142,6 +142,7 @@
                 <label class="form-label" for="role">Rôle</label>
                 <select name="role" id="role" class="form-control" required>
                     <option value="agent" {{ old('role', $user->role) == 'agent' ? 'selected' : '' }}>Agent Commercial</option>
+                    <option value="media_buyer" {{ old('role', $user->role) == 'media_buyer' ? 'selected' : '' }}>Media Buyer</option>
                     <option value="admin" {{ old('role', $user->role) == 'admin' ? 'selected' : '' }}>Admin</option>
                     <option value="supplier" {{ old('role', $user->role) == 'supplier' ? 'selected' : '' }}>Fournisseur (Préparateur)</option>
                 </select>

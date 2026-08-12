@@ -26,7 +26,7 @@ class ProspectController extends Controller
             $query->whereDate('created_at', '<=', $endDate);
         }
 
-        if ($user->isAdmin()) {
+        if ($user->isAdmin() || $user->hasPermission('manage_prospects')) {
             $files = $query->with(['agent', 'uploader'])->withCount('prospects')->latest()->get();
             $agents = User::where('role', 'agent')->where('is_active', true)->orderBy('name')->get();
             return view('prospects.admin_index', compact('files', 'agents', 'startDate', 'endDate'));

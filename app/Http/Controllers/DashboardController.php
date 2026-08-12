@@ -22,7 +22,7 @@ class DashboardController extends Controller
         if ($user->isAdmin()) {
             return $this->adminDashboard($startDate, $endDate);
         } elseif ($user->isSupplier()) {
-            return redirect()->route('products.index');
+            return redirect()->route('supplier.index');
         } else {
             return $this->agentDashboard($startDate, $endDate);
         }

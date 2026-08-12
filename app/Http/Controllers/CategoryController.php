@@ -10,8 +10,7 @@ class CategoryController extends Controller
 {
     public function index()
     {
-        $categories = Category::withCount('products')->orderBy('name')->get();
-        return view('categories.index', compact('categories'));
+        return redirect()->route('products.index', ['tab' => 'categories']);
     }
 
     public function store(Request $request)
@@ -27,7 +26,7 @@ class CategoryController extends Controller
             'description' => $request->description,
         ]);
 
-        return redirect()->route('categories.index')->with('success', 'Catégorie créée avec succès.');
+        return redirect()->route('products.index', ['tab' => 'categories'])->with('success', 'Catégorie créée avec succès.');
     }
 
     public function edit(Category $category)
@@ -48,12 +47,12 @@ class CategoryController extends Controller
             'description' => $request->description,
         ]);
 
-        return redirect()->route('categories.index')->with('success', 'Catégorie mise à jour avec succès.');
+        return redirect()->route('products.index', ['tab' => 'categories'])->with('success', 'Catégorie mise à jour avec succès.');
     }
 
     public function destroy(Category $category)
     {
         $category->delete();
-        return redirect()->route('categories.index')->with('success', 'Catégorie supprimée avec succès.');
+        return redirect()->route('products.index', ['tab' => 'categories'])->with('success', 'Catégorie supprimée avec succès.');
     }
 }

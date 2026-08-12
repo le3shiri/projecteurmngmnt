@@ -12,6 +12,7 @@ class ProductController extends Controller
     {
         $search = $request->input('search');
         $category = $request->input('category');
+        $activeTab = $request->input('tab', 'products');
 
         $products = Product::with('category')
         ->when($search, function ($q) use ($search) {
@@ -27,8 +28,9 @@ class ProductController extends Controller
         ->paginate(15);
 
         $categories = \App\Models\Category::orderBy('name')->get();
+        $categoriesWithCount = \App\Models\Category::withCount('products')->orderBy('name')->get();
 
-        return view('products.index', compact('products', 'search', 'category', 'categories'));
+        return view('products.index', compact('products', 'search', 'category', 'categories', 'categoriesWithCount', 'activeTab'));
     }
 
     public function create()
