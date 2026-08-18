@@ -120,6 +120,24 @@
                 </li>
                 @endif
 
+                <!-- Commissions & Rémunérations -->
+                @if(!auth()->user()->isSupplier() && (auth()->user()->isAdmin() || auth()->user()->hasPermission('view_commissions') || auth()->user()->hasPermission('view_dashboard')))
+                <li>
+                    <a href="{{ route('commissions.index') }}" class="sidebar-link {{ Route::is('commissions.*') ? 'active' : '' }}">
+                        <i class="fa-solid fa-coins"></i>
+                        <span>Commissions</span>
+                        @if(auth()->user()->isAdmin())
+                            @php
+                                $pendingCommCount = \App\Models\Commission::where('status', 'pending')->count();
+                            @endphp
+                            @if($pendingCommCount > 0)
+                                <span class="badge badge-warning" style="margin-left: auto; font-size: 0.72rem; padding: 2px 7px; border-radius: 10px;">{{ $pendingCommCount }}</span>
+                            @endif
+                        @endif
+                    </a>
+                </li>
+                @endif
+
                 <!-- Trainings resources -->
                 @if(auth()->user()->hasPermission('view_trainings'))
                 <li>

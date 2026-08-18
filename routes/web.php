@@ -13,6 +13,7 @@ use App\Http\Controllers\TrainingController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CompanyDocumentController;
+use App\Http\Controllers\CommissionController;
 
 // Auth Routes
 Route::get('login', [AuthController::class, 'showLogin'])->name('login');
@@ -178,15 +179,19 @@ Route::middleware(['role'])->group(function () {
     });
 
     // Prospects
+    Route::middleware(['permission:manage_prospects'])->group(function () {
+        Route::get('prospects/upload', function () {
+            return redirect()->route('prospects.index');
+        });
+        Route::post('prospects/upload', [ProspectController::class, 'storeFile'])->name('prospects.upload');
+        Route::delete('prospects/{file}/delete', [ProspectController::class, 'destroyFile'])->name('prospects.destroyFile');
+    });
     Route::middleware(['permission:view_prospects'])->group(function () {
         Route::get('prospects', [ProspectController::class, 'index'])->name('prospects.index');
         Route::get('prospects/{file}', [ProspectController::class, 'show'])->name('prospects.show');
         Route::get('prospects/{file}/dialer', [ProspectController::class, 'dialer'])->name('prospects.dialer');
         Route::post('prospects/{prospect}/update', [ProspectController::class, 'updateProspect'])->name('prospects.update');
-    });
-    Route::middleware(['permission:manage_prospects'])->group(function () {
-        Route::post('prospects/upload', [ProspectController::class, 'storeFile'])->name('prospects.upload');
-        Route::delete('prospects/{file}/delete', [ProspectController::class, 'destroyFile'])->name('prospects.destroyFile');
+        Route::post('prospects/{prospect}', [ProspectController::class, 'updateProspect']);
     });
 
     // Team / Collaborators
@@ -223,6 +228,17 @@ Route::middleware(['role'])->group(function () {
         Route::post('company-documents', [CompanyDocumentController::class, 'store'])->name('company_documents.store');
         Route::put('company-documents/{companyDocument}', [CompanyDocumentController::class, 'update'])->name('company_documents.update');
         Route::delete('company-documents/{companyDocument}', [CompanyDocumentController::class, 'destroy'])->name('company_documents.destroy');
+    });
+
+    // Commissions & Rémunérations
+    Route::middleware(['permission:view_commissions,view_dashboard'])->group(function () {
+        Route::get('commissions', [CommissionController::class, 'index'])->name('commissions.index');
+        Route::get('commissions/agent/{user}', [CommissionController::class, 'showAgentCommissions'])->name('commissions.show');
+    });
+    Route::middleware(['permission:manage_users'])->group(function () {
+        Route::post('commissions/{commission}/pay', [CommissionController::class, 'markAsPaid'])->name('commissions.pay');
+        Route::post('commissions/{commission}/pending', [CommissionController::class, 'markAsPending'])->name('commissions.unpay');
+        Route::post('commissions/agent/{user}/pay-all', [CommissionController::class, 'payAllAgentPending'])->name('commissions.pay_all');
     });
 });
 

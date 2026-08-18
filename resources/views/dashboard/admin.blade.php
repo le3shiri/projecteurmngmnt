@@ -39,10 +39,10 @@
         <span class="metric-label">Dépenses Globales</span>
         <span class="metric-value">{{ number_format($totalExpenses, 2, ',', ' ') }} DH</span>
     </div>
-    <div class="metric-card warning">
-        <span class="metric-label">Commissions Dues (Agents)</span>
+    <a href="{{ route('commissions.index') }}" class="metric-card warning" style="text-decoration: none; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+        <span class="metric-label">Commissions Dues (Agents) <i class="fa-solid fa-arrow-right" style="font-size: 0.75rem; margin-left: 4px;"></i></span>
         <span class="metric-value">{{ number_format($commissionsPending, 2, ',', ' ') }} DH</span>
-    </div>
+    </a>
     <div class="metric-card success">
         <span class="metric-label">Bénéfice Net</span>
         <span class="metric-value">{{ number_format($netProfit, 2, ',', ' ') }} DH</span>

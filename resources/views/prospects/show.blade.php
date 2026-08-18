@@ -253,7 +253,7 @@
 <script>
     function openRecallModal(prospect) {
         var form = document.getElementById('recallProspectForm');
-        form.action = "{{ url('prospects') }}/" + prospect.id;
+        form.action = "{{ url('prospects') }}/" + prospect.id + "/update";
 
         document.getElementById('modal_prospect_name').innerText = prospect.name || 'Anonyme';
         document.getElementById('modal_prospect_phone').innerText = prospect.phone;

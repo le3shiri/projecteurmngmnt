@@ -41,7 +41,7 @@ class ProspectController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'agent_id' => 'required|exists:users,id',
-            'file' => 'required|file|mimes:csv,txt|max:4096',
+            'file' => 'required|file|max:10240',
         ]);
 
         $path = $request->file('file')->store('prospect_files', 'public');
@@ -53,23 +53,31 @@ class ProspectController extends Controller
             'uploaded_by' => auth()->id(),
         ]);
 
-        // Parse CSV and insert prospects using abstract Storage facade (avoids absolute path conflicts)
+        // Parse CSV and insert prospects using abstract Storage facade
         if (Storage::disk('public')->exists($path)) {
             $csvContent = Storage::disk('public')->get($path);
             $lines = preg_split('/\r\n|\r|\n/', $csvContent);
             
             // Filter out empty lines
-            $lines = array_filter($lines, function ($line) {
+            $lines = array_values(array_filter($lines, function ($line) {
                 return trim($line) !== '';
-            });
+            }));
             
             if (count($lines) > 0) {
-                // Skip header row
-                array_shift($lines);
+                // Auto-detect delimiter (, or ;)
+                $delimiter = (strpos($lines[0], ';') !== false) ? ';' : ',';
+                
+                // Smart header detection (check if line 1 contains text header labels)
+                $firstData = str_getcsv($lines[0], $delimiter);
+                $col1 = strtolower(trim($firstData[0] ?? ''));
+                $col2 = strtolower(trim($firstData[1] ?? ''));
+                
+                if (in_array($col1, ['nom', 'name', 'prospect', 'full name', 'fullname']) || in_array($col2, ['phone', 'telephone', 'téléphone', 'tel', 'mobile', 'numéro', 'numero'])) {
+                    array_shift($lines);
+                }
                 
                 foreach ($lines as $line) {
-                    $data = str_getcsv($line);
-                    // First column is name, second is phone number. Fallback to name as phone if only 1 column.
+                    $data = str_getcsv($line, $delimiter);
                     $name = $data[0] ?? 'Prospect';
                     $phone = $data[1] ?? ($data[0] ?? null);
                     
@@ -158,7 +166,8 @@ class ProspectController extends Controller
             'called_at' => now(),
         ]);
 
-        if ($request->has('redirect_back') || $request->header('referer') && str_contains($request->header('referer'), 'prospect-files/')) {
+        $referer = $request->header('referer');
+        if ($request->has('redirect_back') || ($referer && !str_contains($referer, '/dialer'))) {
             return back()->with('success', 'Fiche prospect mise à jour avec succès.');
         }
 
