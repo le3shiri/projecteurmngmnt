@@ -102,20 +102,49 @@
 
         <!-- Documents Generation List -->
         <div class="glass-card" style="margin: 0;">
-            <h3 class="card-title">Édition des documents</h3>
-            <div style="display: flex; flex-direction: column; gap: 8px;">
-                <a href="{{ route('orders.pdf', [$order->id, 'devis']) }}" class="btn btn-secondary" style="justify-content: flex-start;">
-                    <i class="fa-solid fa-file-invoice" style="color: var(--info);"></i> Générer le Devis (Proforma)
-                </a>
-                <a href="{{ route('orders.pdf', [$order->id, 'facture']) }}" class="btn btn-secondary" style="justify-content: flex-start;">
-                    <i class="fa-solid fa-file-invoice-dollar" style="color: var(--success);"></i> Générer la Facture
-                </a>
-                <a href="{{ route('orders.pdf', [$order->id, 'recu']) }}" class="btn btn-secondary" style="justify-content: flex-start;">
-                    <i class="fa-solid fa-ticket" style="color: var(--primary);"></i> Générer le Reçu de paiement
-                </a>
-                <a href="{{ route('orders.pdf', [$order->id, 'bon_commande']) }}" class="btn btn-secondary" style="justify-content: flex-start;">
-                    <i class="fa-solid fa-dolly" style="color: var(--warning);"></i> Générer le Bon de Commande
-                </a>
+            <h3 class="card-title"><i class="fa-solid fa-file-pdf" style="color: var(--primary);"></i> Édition & Téléchargement des Documents</h3>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                
+                <!-- Devis -->
+                <div style="display: flex; gap: 6px; align-items: center;">
+                    <a href="{{ route('orders.document.edit', [$order->id, 'devis']) }}" class="btn btn-primary btn-sm" style="flex: 1; justify-content: flex-start;">
+                        <i class="fa-solid fa-pen-to-square"></i> Éditer / Aperçu Devis
+                    </a>
+                    <a href="{{ route('orders.pdf', [$order->id, 'devis']) }}" class="btn btn-secondary btn-sm" title="Télécharger PDF Direct">
+                        <i class="fa-solid fa-download"></i>
+                    </a>
+                </div>
+
+                <!-- Facture -->
+                <div style="display: flex; gap: 6px; align-items: center;">
+                    <a href="{{ route('orders.document.edit', [$order->id, 'facture']) }}" class="btn btn-success btn-sm" style="flex: 1; justify-content: flex-start;">
+                        <i class="fa-solid fa-pen-to-square"></i> Éditer / Aperçu Facture
+                    </a>
+                    <a href="{{ route('orders.pdf', [$order->id, 'facture']) }}" class="btn btn-secondary btn-sm" title="Télécharger PDF Direct">
+                        <i class="fa-solid fa-download"></i>
+                    </a>
+                </div>
+
+                <!-- Reçu -->
+                <div style="display: flex; gap: 6px; align-items: center;">
+                    <a href="{{ route('orders.document.edit', [$order->id, 'recu']) }}" class="btn btn-secondary btn-sm" style="flex: 1; justify-content: flex-start;">
+                        <i class="fa-solid fa-pen-to-square" style="color: var(--primary);"></i> Éditer / Aperçu Reçu
+                    </a>
+                    <a href="{{ route('orders.pdf', [$order->id, 'recu']) }}" class="btn btn-secondary btn-sm" title="Télécharger PDF Direct">
+                        <i class="fa-solid fa-download"></i>
+                    </a>
+                </div>
+
+                <!-- Bon de Commande -->
+                <div style="display: flex; gap: 6px; align-items: center;">
+                    <a href="{{ route('orders.document.edit', [$order->id, 'bon_commande']) }}" class="btn btn-secondary btn-sm" style="flex: 1; justify-content: flex-start;">
+                        <i class="fa-solid fa-pen-to-square" style="color: var(--warning);"></i> Éditer / Aperçu Bon de Commande
+                    </a>
+                    <a href="{{ route('orders.pdf', [$order->id, 'bon_commande']) }}" class="btn btn-secondary btn-sm" title="Télécharger PDF Direct">
+                        <i class="fa-solid fa-download"></i>
+                    </a>
+                </div>
+
             </div>
         </div>
 
@@ -134,8 +163,8 @@
                             <th>Référence</th>
                             <th>Description</th>
                             <th style="text-align: center;">Quantité</th>
-                            <th>Prix Unitaire</th>
-                            <th style="text-align: right;">Total</th>
+                            <th>Prix Unitaire HT</th>
+                            <th style="text-align: right;">Total HT</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -145,7 +174,7 @@
                                 <td>{{ $item->product_name }}</td>
                                 <td style="text-align: center;">{{ $item->quantity }}</td>
                                 <td>{{ number_format($item->unit_price, 2, ',', ' ') }} DH</td>
-                                <td style="text-align: right; font-weight: 600;">{{ number_format($item->total, 2, ',', ' ') }} DH</td>
+                                <td style="text-align: right; font-weight: 600;">{{ number_format($item->quantity * $item->unit_price, 2, ',', ' ') }} DH</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -154,10 +183,11 @@
 
             <!-- Total summary right block -->
             <div style="display: flex; flex-direction: column; align-items: flex-end; margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1rem; gap: 8px;">
-                <div style="font-size: 0.95rem; color: var(--text-secondary);">Total des articles : <span style="color: var(--text-primary); font-weight: 600;">{{ number_format($order->total, 2, ',', ' ') }} DH</span></div>
-                <div style="font-size: 0.95rem; color: var(--text-secondary);">Acompte Espèces : <span style="color: var(--text-primary); font-weight: 600;">{{ number_format($order->advance_cash, 2, ',', ' ') }} DH</span></div>
-                <div style="font-size: 0.95rem; color: var(--text-secondary);">Acompte Virement : <span style="color: var(--text-primary); font-weight: 600;">{{ number_format($order->advance_transfer, 2, ',', ' ') }} DH</span></div>
-                <div style="font-size: 1.3rem; color: var(--primary); font-weight: 800; border-top: 1px dashed var(--border-color); padding-top: 8px;">Solde Restant : {{ number_format($order->remaining, 2, ',', ' ') }} DH</div>
+                <div style="font-size: 0.95rem; color: var(--text-secondary);">Total HT : <span style="color: var(--text-primary); font-weight: 600;">{{ number_format($order->total_ht, 2, ',', ' ') }} DH</span></div>
+                <div style="font-size: 0.95rem; color: var(--text-secondary);">TVA (20%) : <span style="color: var(--text-primary); font-weight: 600;">{{ number_format($order->tva, 2, ',', ' ') }} DH</span></div>
+                <div style="font-size: 1.05rem; font-weight: 700; color: var(--text-primary);">Total TTC : <span>{{ number_format($order->total_ttc, 2, ',', ' ') }} DH</span></div>
+                <div style="font-size: 0.95rem; color: var(--warning);">Acomptes versés : <span style="font-weight: 600;">{{ number_format($order->total_advances, 2, ',', ' ') }} DH</span></div>
+                <div style="font-size: 1.3rem; color: var(--primary); font-weight: 800; border-top: 1px dashed var(--border-color); padding-top: 8px; margin-top: 4px;">Solde Restant : {{ number_format($order->remaining, 2, ',', ' ') }} DH</div>
             </div>
         </div>
 

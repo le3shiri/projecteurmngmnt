@@ -116,15 +116,16 @@ class OrderController extends Controller
         // 3. Create unique Order Code
         $code = 'CMD-' . strtoupper(Str::random(8));
 
-        // 4. Calculate total & remaining
-        $total = 0;
+        // 4. Calculate total & remaining (prices are HT, so remaining is TTC - advances)
+        $total = 0; // Total HT
         foreach ($request->items as $item) {
             $total += $item['quantity'] * $item['unit_price'];
         }
 
         $advanceCash = $request->input('advance_cash', 0) ?: 0;
         $advanceTransfer = $request->input('advance_transfer', 0) ?: 0;
-        $remaining = $total - ($advanceCash + $advanceTransfer);
+        $totalTtc = $total * 1.20;
+        $remaining = max(0, $totalTtc - ($advanceCash + $advanceTransfer));
 
         $order = Order::create([
             'code' => $code,
@@ -245,11 +246,69 @@ class OrderController extends Controller
         }
 
         $order->load(['customer', 'agent', 'items']);
-        
+
+        // Load company logo as base64
+        $logoPath = public_path('logo.png');
+        $logoBase64 = null;
+        if (file_exists($logoPath)) {
+            $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
+        }
+
+        // Arabic text shaper
+        require_once base_path('vendor/khaled.alshamaa/ar-php/src/Arabic.php');
+        $arabic = new \ArPHP\I18N\Arabic();
+
+        $formatText = function ($text) use ($arabic) {
+            if (empty($text)) return '';
+            if (preg_match('/\p{Arabic}/u', $text)) {
+                return $arabic->utf8Glyphs($text);
+            }
+            return $text;
+        };
+
+        // Format customer fields for Arabic support
+        $customerNameFormatted = $formatText($order->customer->name ?? '');
+        $customerCompanyFormatted = $formatText($order->customer->company ?? '');
+        $customerAddressFormatted = $formatText($order->customer->address ?? '');
+
+        // Format item product names for Arabic support if needed
+        foreach ($order->items as $item) {
+            $item->formatted_name = $formatText($item->product_name ?? '');
+        }
+
+        // Calculate Totals:
+        // total field in order is Total HT
+        $totalHt = (float) $order->total;
+        $tva = $totalHt * 0.20;
+        $totalTtc = $totalHt * 1.20;
+        $advances = (float) ($order->advance_cash + $order->advance_transfer);
+        $remaining = max(0, $totalTtc - $advances);
+
+        // Spellout Total TTC in French words
+        $totalInWords = '';
+        try {
+            if (class_exists('NumberFormatter')) {
+                $formatter = new \NumberFormatter('fr', \NumberFormatter::SPELLOUT);
+                $totalInWords = mb_strtoupper($formatter->format((int) round($totalTtc)));
+            }
+        } catch (\Exception $e) {
+            $totalInWords = '';
+        }
+
         $data = [
             'order' => $order,
             'title' => strtoupper($type) . ' - ' . $order->code,
-            'type' => $type
+            'type' => $type,
+            'logoBase64' => $logoBase64,
+            'customerNameFormatted' => $customerNameFormatted,
+            'customerCompanyFormatted' => $customerCompanyFormatted,
+            'customerAddressFormatted' => $customerAddressFormatted,
+            'totalHt' => $totalHt,
+            'tva' => $tva,
+            'totalTtc' => $totalTtc,
+            'advances' => $advances,
+            'remaining' => $remaining,
+            'totalInWords' => $totalInWords,
         ];
 
         // Renders view from views/orders/pdf.blade.php
@@ -345,5 +404,134 @@ class OrderController extends Controller
         });
 
         return redirect()->route('orders.index')->with('success', 'Commande supprimée avec succès.');
+    }
+
+    // Document Editor View
+    public function editDocument(Order $order, $type)
+    {
+        $user = auth()->user();
+        if ($user->isAgent() && $order->agent_id !== $user->id) {
+            abort(403);
+        }
+
+        $order->load(['customer', 'agent', 'items']);
+
+        return view('orders.document_editor', compact('order', 'type'));
+    }
+
+    // Process Custom Document Generation & Download
+    public function generateCustomDocumentPdf(Request $request, Order $order, $type)
+    {
+        $user = auth()->user();
+        if ($user->isAgent() && $order->agent_id !== $user->id) {
+            abort(403);
+        }
+
+        // Load company logo as base64
+        $logoPath = public_path('logo.png');
+        $logoBase64 = null;
+        if (file_exists($logoPath)) {
+            $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
+        }
+
+        // Arabic shaper
+        require_once base_path('vendor/khaled.alshamaa/ar-php/src/Arabic.php');
+        $arabic = new \ArPHP\I18N\Arabic();
+
+        $formatText = function ($text) use ($arabic) {
+            if (empty($text)) return '';
+            if (preg_match('/\p{Arabic}/u', $text)) {
+                return $arabic->utf8Glyphs($text);
+            }
+            return $text;
+        };
+
+        $customerNameFormatted = $formatText($request->input('customer_name', $order->customer->name ?? ''));
+        $customerCompanyFormatted = $formatText($request->input('customer_company', $order->customer->company ?? ''));
+        $customerAddressFormatted = $formatText($request->input('customer_address', $order->customer->address ?? ''));
+
+        // Custom items array from form input
+        $items = [];
+        $totalHt = 0;
+        if ($request->has('items') && is_array($request->items)) {
+            foreach ($request->items as $itemData) {
+                $qty = (int) ($itemData['quantity'] ?? 1);
+                $unitPrice = (float) ($itemData['unit_price'] ?? 0);
+                $rowTotal = $qty * $unitPrice;
+                $totalHt += $rowTotal;
+
+                $items[] = (object) [
+                    'product_code' => $itemData['code'] ?? '',
+                    'product_name' => $itemData['name'] ?? '',
+                    'formatted_name' => $formatText($itemData['name'] ?? ''),
+                    'quantity' => $qty,
+                    'unit_price' => $unitPrice,
+                    'total' => $rowTotal,
+                ];
+            }
+        } else {
+            foreach ($order->items as $item) {
+                $rowTotal = $item->quantity * $item->unit_price;
+                $totalHt += $rowTotal;
+                $item->formatted_name = $formatText($item->product_name ?? '');
+                $items[] = $item;
+            }
+        }
+
+        $tvaRate = (float) $request->input('tva_rate', 20);
+        $tva = $totalHt * ($tvaRate / 100);
+        $totalTtc = $totalHt + $tva;
+        $advances = (float) $request->input('advances', ($order->advance_cash + $order->advance_transfer));
+        $remaining = max(0, $totalTtc - $advances);
+
+        // Spellout Total TTC
+        $totalInWords = '';
+        try {
+            if (class_exists('NumberFormatter')) {
+                $formatter = new \NumberFormatter('fr', \NumberFormatter::SPELLOUT);
+                $totalInWords = mb_strtoupper($formatter->format((int) round($totalTtc)));
+            }
+        } catch (\Exception $e) {
+            $totalInWords = '';
+        }
+
+        // Custom order override object
+        $customOrder = (object) [
+            'code' => $request->input('doc_number', $order->code),
+            'created_at' => \Carbon\Carbon::parse($request->input('doc_date', $order->created_at->format('Y-m-d'))),
+            'customer' => (object) [
+                'name' => $request->input('customer_name', $order->customer->name ?? ''),
+                'company' => $request->input('customer_company', $order->customer->company ?? ''),
+                'phone' => $request->input('customer_phone', $order->customer->phone ?? ''),
+                'email' => $request->input('customer_email', $order->customer->email ?? ''),
+                'address' => $request->input('customer_address', $order->customer->address ?? ''),
+            ],
+            'items' => $items,
+        ];
+
+        $data = [
+            'order' => $customOrder,
+            'title' => strtoupper($type) . ' - ' . $customOrder->code,
+            'type' => $type,
+            'logoBase64' => $logoBase64,
+            'customerNameFormatted' => $customerNameFormatted,
+            'customerCompanyFormatted' => $customerCompanyFormatted,
+            'customerAddressFormatted' => $customerAddressFormatted,
+            'totalHt' => $totalHt,
+            'tva' => $tva,
+            'totalTtc' => $totalTtc,
+            'advances' => $advances,
+            'remaining' => $remaining,
+            'totalInWords' => $totalInWords,
+            'emitterName' => $request->input('emitter_name', 'Projecteur CRM Inc.'),
+            'emitterSubtitle' => $request->input('emitter_subtitle', 'Boutique physique et en ligne'),
+            'emitterCountry' => $request->input('emitter_country', 'Maroc'),
+            'emitterPhone' => $request->input('emitter_phone', '+212 600-000000'),
+            'emitterEmail' => $request->input('emitter_email', 'contact@projecteurlogo.com'),
+        ];
+
+        $pdf = Pdf::loadView('orders.pdf', $data);
+
+        return $pdf->download($type . '_' . $customOrder->code . '.pdf');
     }
 }

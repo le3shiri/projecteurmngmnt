@@ -187,24 +187,51 @@ class CommissionController extends Controller
             'paid_at' => 'nullable|date',
         ]);
 
+        $paidAt = $request->input('paid_at') ?: now();
+        $notes = $request->input('notes') ?: 'Règlement effectué';
+
         $commission->update([
             'status' => 'paid',
-            'paid_at' => $request->input('paid_at') ?: now(),
-            'notes' => $request->input('notes') ?: 'Règlement effectué',
+            'paid_at' => $paidAt,
+            'notes' => $notes,
         ]);
 
-        return back()->with('success', 'La commission de ' . number_format($commission->amount, 2, ',', ' ') . ' DH a été marquée comme payée.');
+        $commission->load(['agent', 'order']);
+        $orderCode = $commission->order->code ?? 'N/A';
+        $agentName = $commission->agent->name ?? 'Agent';
+
+        // Auto-add paid commission to Expenses
+        \App\Models\Expense::create([
+            'title' => "Commission Agent - {$agentName} ({$orderCode})",
+            'category' => 'Commissions',
+            'amount' => $commission->amount,
+            'date' => $paidAt,
+            'description' => "Règlement de commission pour la commande {$orderCode}. Notes: {$notes}",
+            'created_by' => auth()->id(),
+        ]);
+
+        return back()->with('success', 'La commission de ' . number_format($commission->amount, 2, ',', ' ') . ' DH a été marquée comme payée et enregistrée dans les dépenses.');
     }
 
     public function markAsPending(Request $request, Commission $commission)
     {
+        $commission->load(['agent', 'order']);
+        $orderCode = $commission->order->code ?? 'N/A';
+        $agentName = $commission->agent->name ?? 'Agent';
+
         $commission->update([
             'status' => 'pending',
             'paid_at' => null,
             'notes' => 'Marquée comme non payée',
         ]);
 
-        return back()->with('success', 'La commission a été remise en statut En attente.');
+        // Remove from Expenses if present
+        \App\Models\Expense::where('category', 'Commissions')
+            ->where('title', 'like', "%{$agentName}%")
+            ->where('title', 'like', "%{$orderCode}%")
+            ->delete();
+
+        return back()->with('success', 'La commission a été remise en statut En attente et retirée des dépenses.');
     }
 
     public function payAllAgentPending(Request $request, User $user)
@@ -213,23 +240,38 @@ class CommissionController extends Controller
             'notes' => 'nullable|string|max:500',
         ]);
 
-        $pendingCommissions = Commission::where('agent_id', $user->id)->where('status', 'pending')->get();
+        $pendingCommissions = Commission::where('agent_id', $user->id)->where('status', 'pending')->with('order')->get();
 
         if ($pendingCommissions->isEmpty()) {
             return back()->with('error', 'Aucune commission en attente de paiement pour cet agent.');
         }
 
         $totalPaidAmount = 0;
+        $notes = $request->input('notes') ?: 'Règlement global des commissions de l\'agent';
+        $now = now();
+
         foreach ($pendingCommissions as $commission) {
             $totalPaidAmount += $commission->amount;
             $commission->update([
                 'status' => 'paid',
-                'paid_at' => now(),
-                'notes' => $request->input('notes') ?: 'Règlement global des commissions de l\'agent',
+                'paid_at' => $now,
+                'notes' => $notes,
+            ]);
+
+            $orderCode = $commission->order->code ?? 'N/A';
+
+            // Auto-add paid commission to Expenses
+            \App\Models\Expense::create([
+                'title' => "Commission Agent - {$user->name} ({$orderCode})",
+                'category' => 'Commissions',
+                'amount' => $commission->amount,
+                'date' => $now,
+                'description' => "Règlement global de commission. Commande: {$orderCode}. Notes: {$notes}",
+                'created_by' => auth()->id(),
             ]);
         }
 
-        return back()->with('success', 'Paiement effectué avec succès ! Total versé à ' . $user->name . ' : ' . number_format($totalPaidAmount, 2, ',', ' ') . ' DH.');
+        return back()->with('success', 'Paiement effectué avec succès ! Total versé à ' . $user->name . ' : ' . number_format($totalPaidAmount, 2, ',', ' ') . ' DH (enregistré dans les dépenses).');
     }
 
     private function reconcileMissingCommissions()

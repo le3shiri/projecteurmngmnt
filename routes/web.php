@@ -162,6 +162,8 @@ Route::middleware(['role'])->group(function () {
         Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
         Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
         Route::get('orders/{order}/pdf/{type}', [OrderController::class, 'downloadPdf'])->name('orders.pdf');
+        Route::get('orders/{order}/document/{type}/edit', [OrderController::class, 'editDocument'])->name('orders.document.edit');
+        Route::post('orders/{order}/document/{type}/generate', [OrderController::class, 'generateCustomDocumentPdf'])->name('orders.document.generate');
     });
     Route::middleware(['permission:update_order_status'])->group(function () {
         Route::post('orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.updateStatus');

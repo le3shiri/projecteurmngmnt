@@ -60,4 +60,24 @@ class Order extends Model
     {
         return $this->hasOne(SupplierOrder::class);
     }
+
+    public function getTotalHtAttribute()
+    {
+        return (float) $this->total;
+    }
+
+    public function getTvaAttribute()
+    {
+        return (float) ($this->total * 0.20);
+    }
+
+    public function getTotalTtcAttribute()
+    {
+        return (float) ($this->total * 1.20);
+    }
+
+    public function getTotalAdvancesAttribute()
+    {
+        return (float) ($this->advance_cash + $this->advance_transfer);
+    }
 }

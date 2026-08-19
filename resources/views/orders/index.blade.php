@@ -53,7 +53,7 @@
                     @if(auth()->user()->isAdmin())
                         <th>Commercial</th>
                     @endif
-                    <th>Total Commande</th>
+                    <th>Total HT</th>
                     <th>Avances reçues</th>
                     <th>Solde Restant</th>
                     <th>Statut</th>
