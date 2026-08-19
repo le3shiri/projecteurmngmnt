@@ -8,10 +8,19 @@
         <h1 class="page-title">Profil Client : {{ $customer->name }}</h1>
         <p style="color: var(--text-secondary); margin-top: 5px;">Aperçu complet du dossier client et de son historique d'achats</p>
     </div>
-    <div style="display: flex; gap: 10px;">
+    <div style="display: flex; gap: 10px; align-items: center;">
         <a href="{{ route('customers.edit', $customer->id) }}" class="btn btn-primary">
             <i class="fa-solid fa-pen"></i> Modifier Profil
         </a>
+        @if(auth()->user()->isAdmin())
+            <form action="{{ route('customers.destroy', $customer->id) }}" method="POST" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce client ? Cette action est irréversible.');" style="display: inline;">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn btn-danger">
+                    <i class="fa-solid fa-trash"></i> Supprimer le Client
+                </button>
+            </form>
+        @endif
         <a href="{{ route('customers.index') }}" class="btn btn-secondary">
             Retour
         </a>

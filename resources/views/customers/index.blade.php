@@ -58,7 +58,7 @@
                         <td>{{ $customer->company ?? '-' }}</td>
                         <td>{{ Str::limit($customer->address, 40) ?? '-' }}</td>
                         <td>
-                            <div style="display: flex; gap: 8px;">
+                            <div style="display: flex; gap: 8px; align-items: center;">
                                 <a href="{{ route('customers.show', $customer->id) }}" class="btn btn-secondary btn-sm">
                                     <i class="fa-solid fa-eye"></i> Fiche
                                 </a>
@@ -66,6 +66,15 @@
                                     <a href="{{ route('customers.edit', $customer->id) }}" class="btn btn-secondary btn-sm">
                                         <i class="fa-solid fa-pen-to-square"></i> Édit
                                     </a>
+                                @endif
+                                @if(auth()->user()->isAdmin())
+                                    <form action="{{ route('customers.destroy', $customer->id) }}" method="POST" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce client ? Toutes ses données et commandes liées seront définitivement supprimées.');" style="display: inline;">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-danger btn-sm" title="Supprimer le client">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </form>
                                 @endif
                             </div>
                         </td>
