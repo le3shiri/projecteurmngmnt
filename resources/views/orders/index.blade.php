@@ -81,12 +81,13 @@
                         <td>
                             @php
                                 $advances = $order->advance_cash + $order->advance_transfer;
+                                $computedRemaining = max(0, (float)$order->total - (float)$advances);
                             @endphp
                             {{ number_format($advances, 2, ',', ' ') }} DH
                         </td>
                         <td>
-                            @if($order->remaining > 0)
-                                <span style="color: var(--warning); font-weight: 600;">{{ number_format($order->remaining, 2, ',', ' ') }} DH</span>
+                            @if($computedRemaining > 0)
+                                <span style="color: var(--warning); font-weight: 600;">{{ number_format($computedRemaining, 2, ',', ' ') }} DH</span>
                             @else
                                 <span style="color: var(--success); font-weight: 600;"><i class="fa-solid fa-circle-check"></i> Payé</span>
                             @endif

@@ -181,13 +181,14 @@
                 </table>
             </div>
 
+            @php
+                $computedRemaining = max(0, (float)$order->total - (float)$order->total_advances);
+            @endphp
             <!-- Total summary right block -->
             <div style="display: flex; flex-direction: column; align-items: flex-end; margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1rem; gap: 8px;">
-                <div style="font-size: 0.95rem; color: var(--text-secondary);">Total HT : <span style="color: var(--text-primary); font-weight: 600;">{{ number_format($order->total_ht, 2, ',', ' ') }} DH</span></div>
-                <div style="font-size: 0.95rem; color: var(--text-secondary);">TVA (20%) : <span style="color: var(--text-primary); font-weight: 600;">{{ number_format($order->tva, 2, ',', ' ') }} DH</span></div>
-                <div style="font-size: 1.05rem; font-weight: 700; color: var(--text-primary);">Total TTC : <span>{{ number_format($order->total_ttc, 2, ',', ' ') }} DH</span></div>
+                <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary);">Total Commande : <span>{{ number_format($order->total, 2, ',', ' ') }} DH</span></div>
                 <div style="font-size: 0.95rem; color: var(--warning);">Acomptes versés : <span style="font-weight: 600;">{{ number_format($order->total_advances, 2, ',', ' ') }} DH</span></div>
-                <div style="font-size: 1.3rem; color: var(--primary); font-weight: 800; border-top: 1px dashed var(--border-color); padding-top: 8px; margin-top: 4px;">Solde Restant : {{ number_format($order->remaining, 2, ',', ' ') }} DH</div>
+                <div style="font-size: 1.3rem; color: var(--primary); font-weight: 800; border-top: 1px dashed var(--border-color); padding-top: 8px; margin-top: 4px;">Solde Restant : {{ number_format($computedRemaining, 2, ',', ' ') }} DH</div>
             </div>
         </div>
 
@@ -195,13 +196,13 @@
         <div class="glass-card" style="margin: 0;">
             <h3 class="card-title">Enregistrement des règlements complémentaires</h3>
 
-            @if($order->remaining > 0)
+            @if($computedRemaining > 0)
                 <form action="{{ route('orders.addPayment', $order->id) }}" method="POST" style="margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1.5rem;">
                     @csrf
                     <div class="form-row">
                         <div class="form-group">
                             <label class="form-label" for="amount">Montant (DH)</label>
-                            <input type="number" step="0.01" name="amount" id="amount" class="form-control" value="{{ $order->remaining }}" max="{{ $order->remaining }}" min="0.01" required>
+                            <input type="number" step="0.01" name="amount" id="amount" class="form-control" value="{{ $computedRemaining }}" max="{{ $computedRemaining }}" min="0.01" required>
                         </div>
                         <div class="form-group">
                             <label class="form-label" for="type">Mode de paiement</label>

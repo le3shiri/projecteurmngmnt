@@ -140,8 +140,8 @@
                     <tr>
                         <th style="width: 45%;">Produit</th>
                         <th style="width: 15%;">Quantité</th>
-                        <th style="width: 20%;">Prix Unitaire HT (DH)</th>
-                        <th style="width: 20%;">Total HT</th>
+                        <th style="width: 20%;">Prix Unitaire (DH)</th>
+                        <th style="width: 20%;">Total</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -152,9 +152,7 @@
         </div>
 
         <div style="display: flex; flex-direction: column; align-items: flex-end; margin-top: 2rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem; gap: 8px;">
-            <div style="font-size: 1rem; color: var(--text-secondary);">Total HT : <span id="summary-total-ht" style="font-weight: 700; color: var(--text-primary);">0,00</span> DH</div>
-            <div style="font-size: 1rem; color: var(--text-secondary);">TVA (20%) : <span id="summary-tva" style="font-weight: 700; color: var(--text-primary);">0,00</span> DH</div>
-            <div style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary);">Total TTC : <span id="summary-total-ttc">0,00</span> DH</div>
+            <div style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary);">Total commande : <span id="summary-total-ttc">0,00</span> DH</div>
             <div style="font-size: 1rem; color: var(--warning);">Total Avances : <span id="summary-advances" style="font-weight: 700;">0,00</span> DH</div>
             <div style="font-size: 1.4rem; color: var(--primary); font-weight: 800; border-top: 1px dashed var(--border-color); padding-top: 8px; margin-top: 4px;">Solde Restant : <span id="summary-remaining">0,00</span> DH</div>
         </div>
@@ -281,8 +279,7 @@
             }
         }
 
-        const tva = totalHt * 0.20;
-        const totalTtc = totalHt * 1.20;
+        const totalTtc = totalHt;
 
         const advanceCash = parseFloat(document.getElementById('advance_cash').value) || 0;
         const advanceTransfer = document.getElementById('advance_transfer') ? (parseFloat(document.getElementById('advance_transfer').value) || 0) : 0;
@@ -290,8 +287,12 @@
         
         const remaining = Math.max(0, totalTtc - totalAdvances);
 
-        document.getElementById('summary-total-ht').textContent = totalHt.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        document.getElementById('summary-tva').textContent = tva.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        if (document.getElementById('summary-total-ht')) {
+            document.getElementById('summary-total-ht').textContent = totalHt.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+        if (document.getElementById('summary-tva')) {
+            document.getElementById('summary-tva').textContent = "0,00";
+        }
         document.getElementById('summary-total-ttc').textContent = totalTtc.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         document.getElementById('summary-advances').textContent = totalAdvances.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         document.getElementById('summary-remaining').textContent = remaining.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });

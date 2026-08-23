@@ -124,7 +124,7 @@ class OrderController extends Controller
 
         $advanceCash = $request->input('advance_cash', 0) ?: 0;
         $advanceTransfer = $request->input('advance_transfer', 0) ?: 0;
-        $totalTtc = $total * 1.20;
+        $totalTtc = $total;
         $remaining = max(0, $totalTtc - ($advanceCash + $advanceTransfer));
 
         $order = Order::create([
@@ -276,11 +276,10 @@ class OrderController extends Controller
             $item->formatted_name = $formatText($item->product_name ?? '');
         }
 
-        // Calculate Totals:
-        // total field in order is Total HT
+        // Calculate Totals (0% TVA default):
         $totalHt = (float) $order->total;
-        $tva = $totalHt * 0.20;
-        $totalTtc = $totalHt * 1.20;
+        $tva = 0.00;
+        $totalTtc = $totalHt;
         $advances = (float) ($order->advance_cash + $order->advance_transfer);
         $remaining = max(0, $totalTtc - $advances);
 
@@ -305,6 +304,7 @@ class OrderController extends Controller
             'customerAddressFormatted' => $customerAddressFormatted,
             'totalHt' => $totalHt,
             'tva' => $tva,
+            'tvaRate' => 0,
             'totalTtc' => $totalTtc,
             'advances' => $advances,
             'remaining' => $remaining,
@@ -326,7 +326,10 @@ class OrderController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        if ($request->amount > $order->remaining) {
+        // Compute true remaining: total price - all advances (no TVA)
+        $currentRemaining = max(0, (float)$order->total - (float)($order->advance_cash + $order->advance_transfer));
+
+        if ($request->amount > $currentRemaining) {
             return back()->with('error', 'Le montant saisi dépasse le solde restant.');
         }
 
@@ -340,18 +343,21 @@ class OrderController extends Controller
             'recorded_by' => auth()->id(),
         ]);
 
-        // Update order
+        // Update order advances
         if ($request->type === 'cash') {
             $order->increment('advance_cash', $request->amount);
         } else {
             $order->increment('advance_transfer', $request->amount);
         }
-        $order->decrement('remaining', $request->amount);
 
-        // Auto mark as confirmed if remaining is 0 or status is pending
-        if ($order->remaining <= 0 && $order->status === 'pending') {
+        // Recalculate and save the correct remaining (total - all advances, no TVA)
+        $order->refresh();
+        $newRemaining = max(0, (float)$order->total - (float)($order->advance_cash + $order->advance_transfer));
+        $order->remaining = $newRemaining;
+
+        // Auto mark as confirmed if fully paid
+        if ($newRemaining <= 0 && $order->status === 'pending') {
             $order->status = 'confirmed';
-            $order->save();
 
             if (!$order->supplierOrder) {
                 SupplierOrder::create([
@@ -360,6 +366,7 @@ class OrderController extends Controller
                 ]);
             }
         }
+        $order->save();
 
         return back()->with('success', 'Paiement enregistré avec succès.');
     }
@@ -478,7 +485,7 @@ class OrderController extends Controller
             }
         }
 
-        $tvaRate = (float) $request->input('tva_rate', 20);
+        $tvaRate = (float) $request->input('tva_rate', 0);
         $tva = $totalHt * ($tvaRate / 100);
         $totalTtc = $totalHt + $tva;
         $advances = (float) $request->input('advances', ($order->advance_cash + $order->advance_transfer));
@@ -519,6 +526,7 @@ class OrderController extends Controller
             'customerAddressFormatted' => $customerAddressFormatted,
             'totalHt' => $totalHt,
             'tva' => $tva,
+            'tvaRate' => $tvaRate,
             'totalTtc' => $totalTtc,
             'advances' => $advances,
             'remaining' => $remaining,

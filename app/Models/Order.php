@@ -68,12 +68,12 @@ class Order extends Model
 
     public function getTvaAttribute()
     {
-        return (float) ($this->total * 0.20);
+        return 0.00;
     }
 
     public function getTotalTtcAttribute()
     {
-        return (float) ($this->total * 1.20);
+        return (float) $this->total;
     }
 
     public function getTotalAdvancesAttribute()

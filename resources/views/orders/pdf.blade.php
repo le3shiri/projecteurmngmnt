@@ -252,18 +252,25 @@
     </table>
 
     <table class="totals-table">
+        @if(($tva ?? 0) > 0 || ($tvaRate ?? 0) > 0)
         <tr>
             <td><strong>Total HT:</strong></td>
             <td style="text-align: right;">{{ number_format($totalHt, 2, ',', ' ') }} DH</td>
         </tr>
         <tr>
-            <td><strong>TVA (20%):</strong></td>
+            <td><strong>TVA ({{ $tvaRate ?? 20 }}%):</strong></td>
             <td style="text-align: right;">{{ number_format($tva, 2, ',', ' ') }} DH</td>
         </tr>
         <tr class="row-ttc">
             <td><strong>Total TTC:</strong></td>
             <td style="text-align: right;">{{ number_format($totalTtc, 2, ',', ' ') }} DH</td>
         </tr>
+        @else
+        <tr class="row-ttc">
+            <td><strong>Total Commande:</strong></td>
+            <td style="text-align: right;">{{ number_format($totalTtc, 2, ',', ' ') }} DH</td>
+        </tr>
+        @endif
         <tr class="row-advances">
             <td>Acomptes versés:</td>
             <td style="text-align: right;">{{ number_format($advances, 2, ',', ' ') }} DH</td>
