@@ -175,6 +175,31 @@
                         </div>
                     @endif
 
+                    {{-- Shipping Ticket --}}
+                    @if($order->shipping_ticket_path)
+                        @php
+                            $ticketExt2 = strtolower(pathinfo($order->shipping_ticket_path, PATHINFO_EXTENSION));
+                            $ticketUrl2 = asset('public-storage/' . $order->shipping_ticket_path);
+                        @endphp
+                        <div style="margin-top: 12px; background: rgba(59, 130, 246, 0.08); border: 1px dashed #60a5fa; padding: 10px 14px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <i class="fa-solid fa-ticket" style="font-size: 1.8rem; color: #60a5fa;"></i>
+                                <div>
+                                    <div style="font-weight: 700; font-size: 0.9rem; color: #fff;">Ticket d'Expédition Joint</div>
+                                    <div style="font-size: 0.78rem; color: var(--text-secondary);">Téléchargez et collez ce ticket sur le colis avant expédition</div>
+                                </div>
+                            </div>
+                            <a href="{{ $ticketUrl2 }}" target="_blank" class="btn btn-sm" style="background: rgba(59,130,246,0.2); border: 1px solid #60a5fa; color: #60a5fa; font-size: 0.8rem;">
+                                <i class="fa-solid fa-print"></i> Ouvrir / Imprimer le Ticket
+                            </a>
+                        </div>
+                    @else
+                        <div style="margin-top: 12px; background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.1); padding: 8px 14px; border-radius: 8px; display: flex; align-items: center; gap: 10px; color: var(--text-secondary); font-size: 0.82rem;">
+                            <i class="fa-solid fa-ticket" style="opacity: 0.4;"></i>
+                            Aucun ticket d'expédition joint pour le moment
+                        </div>
+                    @endif
+
                     @if($order->notes)
                         <div style="margin-top: 10px; font-size: 0.85rem; color: var(--text-secondary); background: rgba(255,255,255,0.02); padding: 8px 12px; border-radius: 6px;">
                             <strong style="color: var(--warning);"><i class="fa-solid fa-circle-info"></i> Instructions particulières :</strong> {{ $order->notes }}

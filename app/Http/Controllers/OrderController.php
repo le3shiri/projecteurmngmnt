@@ -542,4 +542,151 @@ class OrderController extends Controller
 
         return $pdf->download($type . '_' . $customOrder->code . '.pdf');
     }
+
+    // ─── Shipping Ticket Upload ───────────────────────────────────────────────
+    public function uploadShippingTicket(Request $request, Order $order)
+    {
+        $user = auth()->user();
+        // Both admins and agents with the right permissions can upload
+        if (!$user->isAdmin()
+            && !$user->hasPermission('manage_orders')
+            && !$user->hasPermission('update_order_status')
+            && !$user->hasPermission('upload_shipping_ticket')) {
+            abort(403, 'Action non autorisée.');
+        }
+
+        $request->validate([
+            'shipping_ticket' => 'required|file|mimes:jpeg,png,jpg,gif,webp,pdf|max:5120',
+        ]);
+
+        // Delete old ticket if exists
+        if ($order->shipping_ticket_path) {
+            Storage::disk('public')->delete($order->shipping_ticket_path);
+        }
+
+        $path = $request->file('shipping_ticket')->store('shipping_tickets', 'public');
+        $order->shipping_ticket_path = $path;
+        $order->save();
+
+        return back()->with('success', 'Ticket d\'expédition joint avec succès.');
+    }
+
+    // ─── Edit Order Form ──────────────────────────────────────────────────────
+    public function edit(Order $order)
+    {
+        $user = auth()->user();
+        if (!$user->isAdmin() && !$user->hasPermission('manage_orders')) {
+            abort(403, 'Action non autorisée.');
+        }
+
+        $order->load(['customer', 'agent', 'items', 'supplierOrder']);
+        $customers = Customer::orderBy('name')->get();
+        $products  = Product::where('is_active', true)->get();
+        return view('orders.edit', compact('order', 'customers', 'products'));
+    }
+
+    // ─── Update Order ─────────────────────────────────────────────────────────
+    public function update(Request $request, Order $order)
+    {
+        $user = auth()->user();
+        if (!$user->isAdmin() && !$user->hasPermission('manage_orders')) {
+            abort(403, 'Action non autorisée.');
+        }
+
+        $request->validate([
+            'customer_id'              => 'required|exists:customers,id',
+            'items'                    => 'required|array|min:1',
+            'items.*.product_id'       => 'required|exists:products,id',
+            'items.*.quantity'         => 'required|integer|min:1',
+            'items.*.unit_price'       => 'required|numeric|min:0',
+            'advance_cash'             => 'nullable|numeric|min:0',
+            'advance_transfer'         => 'nullable|numeric|min:0',
+            'logo'                     => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:3072',
+            'notes'                    => 'nullable|string',
+            'delivery_date'            => 'nullable|date',
+            'status'                   => 'required|in:pending,confirmed,cancelled,shipped,delivered',
+        ]);
+
+        // 1. Logo update
+        if ($request->hasFile('logo')) {
+            if ($order->logo_path) {
+                Storage::disk('public')->delete($order->logo_path);
+            }
+            $order->logo_path = $request->file('logo')->store('logos', 'public');
+        }
+
+        // 2. Restore stock for existing items before recreating them
+        foreach ($order->items as $oldItem) {
+            if ($oldItem->product_id && $order->status !== 'cancelled') {
+                $product = Product::find($oldItem->product_id);
+                if ($product) {
+                    $product->increment('stock', $oldItem->quantity);
+                }
+            }
+        }
+        $order->items()->delete();
+
+        // 3. Recalculate total & recreate items
+        $total = 0;
+        $agentId = $order->agent_id ?? auth()->id();
+        $totalCommission = 0;
+        foreach ($request->items as $itemData) {
+            $product = Product::find($itemData['product_id']);
+            $qty     = (int) $itemData['quantity'];
+            $price   = (float) $itemData['unit_price'];
+            $itemTotal = $qty * $price;
+            $total += $itemTotal;
+
+            $agentCommissionRate = $product->getCommissionForAgent($agentId);
+            $totalCommission += $qty * $agentCommissionRate;
+
+            OrderItem::create([
+                'order_id'          => $order->id,
+                'product_id'        => $product->id,
+                'product_name'      => $product->name,
+                'product_code'      => $product->code,
+                'quantity'          => $qty,
+                'unit_price'        => $price,
+                'prix_fournisseur'  => $product->prix_fournisseur ?? 0,
+                'commission_agent'  => $agentCommissionRate,
+                'total'             => $itemTotal,
+            ]);
+
+            // Deduct stock for new quantities
+            if ($request->status !== 'cancelled') {
+                $product->decrement('stock', $qty);
+            }
+        }
+
+        $advanceCash     = $request->input('advance_cash', 0) ?: 0;
+        $advanceTransfer = $request->input('advance_transfer', 0) ?: 0;
+        $remaining       = max(0, $total - ($advanceCash + $advanceTransfer));
+
+        // 4. Handle status transition → supplier order
+        $oldStatus = $order->status;
+        if ($request->status === 'confirmed' && $oldStatus !== 'confirmed') {
+            if (!$order->supplierOrder) {
+                SupplierOrder::create(['order_id' => $order->id, 'status' => 'pending']);
+            }
+        }
+
+        // 5. Update order record
+        $order->update([
+            'customer_id'     => $request->customer_id,
+            'status'          => $request->status,
+            'total'           => $total,
+            'advance_cash'    => $advanceCash,
+            'advance_transfer'=> $advanceTransfer,
+            'remaining'       => $remaining,
+            'notes'           => $request->notes,
+            'delivery_date'   => $request->delivery_date,
+        ]);
+
+        // 6. Update agent commission if applicable
+        if ($order->commission) {
+            $order->commission()->update(['amount' => $totalCommission]);
+        }
+
+        return redirect()->route('orders.show', $order->id)->with('success', 'Commande mise à jour avec succès.');
+    }
 }

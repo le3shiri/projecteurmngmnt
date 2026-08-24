@@ -157,6 +157,8 @@ Route::middleware(['role'])->group(function () {
     Route::middleware(['permission:manage_orders'])->group(function () {
         Route::get('orders/create', [OrderController::class, 'create'])->name('orders.create');
         Route::post('orders', [OrderController::class, 'store'])->name('orders.store');
+        Route::get('orders/{order}/edit', [OrderController::class, 'edit'])->name('orders.edit');
+        Route::put('orders/{order}', [OrderController::class, 'update'])->name('orders.update');
     });
     Route::middleware(['permission:view_orders,view_logistics'])->group(function () {
         Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
@@ -168,6 +170,7 @@ Route::middleware(['role'])->group(function () {
     Route::middleware(['permission:update_order_status'])->group(function () {
         Route::post('orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.updateStatus');
         Route::post('orders/{order}/payment', [OrderController::class, 'addPayment'])->name('orders.addPayment');
+        Route::post('orders/{order}/shipping-ticket', [OrderController::class, 'uploadShippingTicket'])->name('orders.shippingTicket');
     });
     Route::delete('orders/{order}', [OrderController::class, 'destroy'])->name('orders.destroy');
 

@@ -8,13 +8,18 @@
         <h1 class="page-title">Commande {{ $order->code }}</h1>
         <p style="color: var(--text-secondary); margin-top: 5px;">Créée le {{ $order->created_at->format('d/m/Y à H:i') }} par {{ $order->agent->name ?? 'Direct' }}</p>
     </div>
-    <div style="display: flex; gap: 10px; align-items: center;">
+    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        @if(auth()->user()->isAdmin() || auth()->user()->hasPermission('manage_orders'))
+            <a href="{{ route('orders.edit', $order->id) }}" class="btn btn-primary">
+                <i class="fa-solid fa-pen-to-square"></i> Modifier la Commande
+            </a>
+        @endif
         @if(auth()->user()->isAdmin())
             <form action="{{ route('orders.destroy', $order->id) }}" method="POST" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette commande ? Cette action est irréversible.');" style="display: inline;">
                 @csrf
                 @method('DELETE')
                 <button type="submit" class="btn btn-danger">
-                    <i class="fa-solid fa-trash"></i> Supprimer la Commande
+                    <i class="fa-solid fa-trash"></i> Supprimer
                 </button>
             </form>
         @endif
@@ -97,6 +102,50 @@
                     <i class="fa-solid fa-circle-xmark" style="font-size: 1.5rem; margin-bottom: 8px;"></i>
                     Aucun logo joint à cette commande
                 </div>
+            @endif
+        </div>
+
+        <!-- Shipping Ticket Upload Card -->
+        <div class="glass-card" style="margin: 0;">
+            <h3 class="card-title"><i class="fa-solid fa-ticket" style="color: var(--primary);"></i> Ticket d'Expédition</h3>
+
+            @if($order->shipping_ticket_path)
+                @php
+                    $ticketExt = strtolower(pathinfo($order->shipping_ticket_path, PATHINFO_EXTENSION));
+                    $ticketUrl = asset('public-storage/' . $order->shipping_ticket_path);
+                @endphp
+                <div style="background: rgba(212,175,55,0.08); border: 1px dashed var(--primary); border-radius: 8px; padding: 12px 14px; margin-bottom: 12px;">
+                    @if(in_array($ticketExt, ['jpg','jpeg','png','gif','webp']))
+                        <img src="{{ $ticketUrl }}" alt="Ticket d'expédition" style="max-width: 100%; max-height: 180px; object-fit: contain; display: block; margin: 0 auto 10px;">
+                    @else
+                        <div style="text-align: center; padding: 1rem 0;">
+                            <i class="fa-solid fa-file-pdf" style="font-size: 2.5rem; color: var(--primary); margin-bottom: 8px; display: block;"></i>
+                            <span style="font-size: 0.85rem; color: var(--text-secondary);">Ticket PDF joint</span>
+                        </div>
+                    @endif
+                    <a href="{{ $ticketUrl }}" target="_blank" class="btn btn-secondary btn-sm" style="width: 100%; margin-top: 6px;">
+                        <i class="fa-solid fa-expand"></i> Ouvrir / Imprimer le ticket
+                    </a>
+                </div>
+            @else
+                <div style="text-align: center; color: var(--text-secondary); padding: 1.5rem 0; border: 2px dashed var(--border-color); border-radius: 8px; margin-bottom: 12px;">
+                    <i class="fa-solid fa-ticket" style="font-size: 1.5rem; opacity: 0.4; margin-bottom: 8px; display: block;"></i>
+                    Aucun ticket d'expédition joint
+                </div>
+            @endif
+
+            @if(auth()->user()->isAdmin() || auth()->user()->hasPermission('manage_orders') || auth()->user()->hasPermission('update_order_status') || auth()->user()->hasPermission('upload_shipping_ticket'))
+                <form action="{{ route('orders.shippingTicket', $order->id) }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <label class="form-label" style="font-size: 0.8rem;">{{ $order->shipping_ticket_path ? 'Remplacer le ticket' : 'Joindre un ticket' }}</label>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <input type="file" name="shipping_ticket" class="form-control" accept="image/jpeg,image/png,image/jpg,image/gif,image/webp,application/pdf" required>
+                        <button type="submit" class="btn btn-primary btn-sm" style="white-space: nowrap;">
+                            <i class="fa-solid fa-upload"></i> Joindre
+                        </button>
+                    </div>
+                    <small style="color: var(--text-secondary); margin-top: 4px; display: block;">Formats acceptés : JPG, PNG, WebP, PDF. Max : 5 Mo</small>
+                </form>
             @endif
         </div>
 

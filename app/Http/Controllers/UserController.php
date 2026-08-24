@@ -172,10 +172,11 @@ class UserController extends Controller
                 'manage_categories' => 'Gérer les catégories de produits'
             ],
             'Commandes & Ventes' => [
-                'view_orders' => 'Consulter la liste des commandes',
-                'manage_orders' => 'Créer une nouvelle commande (vente)',
-                'update_order_status' => 'Modifier le statut des commandes & encaisser les paiements',
-                'delete_orders' => 'Supprimer des commandes (Réservé à l\'administrateur)'
+                'view_orders'          => 'Consulter la liste des commandes',
+                'manage_orders'        => 'Créer une nouvelle commande (vente)',
+                'update_order_status'  => 'Modifier le statut des commandes & encaisser les paiements',
+                'upload_shipping_ticket' => 'Joindre / remplacer un ticket d\'expédition sur une commande',
+                'delete_orders'        => 'Supprimer des commandes (Réservé à l\'administrateur)'
             ],
             'Prospection Téléphonique' => [
                 'view_prospects' => 'Accéder et appeler les prospects assignés',

@@ -19,6 +19,7 @@ class Order extends Model
         'advance_transfer',
         'remaining',
         'logo_path',
+        'shipping_ticket_path',
         'notes',
         'delivery_date',
     ];
