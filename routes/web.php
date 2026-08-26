@@ -14,6 +14,7 @@ use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CompanyDocumentController;
 use App\Http\Controllers\CommissionController;
+use App\Http\Controllers\RealisationController;
 
 // Auth Routes
 Route::get('login', [AuthController::class, 'showLogin'])->name('login');
@@ -171,6 +172,7 @@ Route::middleware(['role'])->group(function () {
         Route::post('orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.updateStatus');
         Route::post('orders/{order}/payment', [OrderController::class, 'addPayment'])->name('orders.addPayment');
         Route::post('orders/{order}/shipping-ticket', [OrderController::class, 'uploadShippingTicket'])->name('orders.shippingTicket');
+        Route::delete('orders/{order}/shipping-ticket', [OrderController::class, 'deleteShippingTicket'])->name('orders.deleteShippingTicket');
     });
     Route::delete('orders/{order}', [OrderController::class, 'destroy'])->name('orders.destroy');
 
@@ -244,6 +246,21 @@ Route::middleware(['role'])->group(function () {
         Route::post('commissions/{commission}/pay', [CommissionController::class, 'markAsPaid'])->name('commissions.pay');
         Route::post('commissions/{commission}/pending', [CommissionController::class, 'markAsPending'])->name('commissions.unpay');
         Route::post('commissions/agent/{user}/pay-all', [CommissionController::class, 'payAllAgentPending'])->name('commissions.pay_all');
+    });
+
+    // Nos Réalisations — Media Gallery
+    Route::middleware(['permission:view_realisations'])->group(function () {
+        Route::get('realisations', [RealisationController::class, 'index'])->name('realisations.index');
+        Route::get('realisations/{realisation}/download', [RealisationController::class, 'download'])->name('realisations.download');
+    });
+    // Add: admin + agent with add_realisations
+    Route::middleware(['permission:view_realisations'])->group(function () {
+        Route::post('realisations', [RealisationController::class, 'store'])->name('realisations.store');
+    });
+    // Edit + Delete: admin / manage_realisations only
+    Route::middleware(['permission:manage_realisations'])->group(function () {
+        Route::put('realisations/{realisation}', [RealisationController::class, 'update'])->name('realisations.update');
+        Route::delete('realisations/{realisation}', [RealisationController::class, 'destroy'])->name('realisations.destroy');
     });
 });
 

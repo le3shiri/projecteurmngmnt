@@ -157,6 +157,16 @@
                     </a>
                 </li>
                 @endif
+
+                <!-- Nos Réalisations — Media Gallery -->
+                @if(!auth()->user()->isSupplier() && auth()->user()->hasPermission('view_realisations'))
+                <li>
+                    <a href="{{ route('realisations.index') }}" class="sidebar-link {{ Route::is('realisations.*') ? 'active' : '' }}">
+                        <i class="fa-solid fa-images"></i>
+                        <span>Nos Réalisations</span>
+                    </a>
+                </li>
+                @endif
             </ul>
 
             <!-- Sidebar footer -->

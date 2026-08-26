@@ -126,6 +126,15 @@
                     <a href="{{ $ticketUrl }}" target="_blank" class="btn btn-secondary btn-sm" style="width: 100%; margin-top: 6px;">
                         <i class="fa-solid fa-expand"></i> Ouvrir / Imprimer le ticket
                     </a>
+                    @if(auth()->user()->isAdmin() || auth()->user()->hasPermission('manage_orders') || auth()->user()->hasPermission('update_order_status') || auth()->user()->hasPermission('upload_shipping_ticket'))
+                    <form action="{{ route('orders.deleteShippingTicket', $order->id) }}" method="POST" style="margin-top: 6px;" onsubmit="return confirm('Supprimer définitivement ce ticket d\'expédition ?')">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-danger btn-sm" style="width: 100%;">
+                            <i class="fa-solid fa-trash-can"></i> Supprimer le ticket
+                        </button>
+                    </form>
+                    @endif
                 </div>
             @else
                 <div style="text-align: center; color: var(--text-secondary); padding: 1.5rem 0; border: 2px dashed var(--border-color); border-radius: 8px; margin-bottom: 12px;">

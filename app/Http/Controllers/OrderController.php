@@ -571,6 +571,26 @@ class OrderController extends Controller
         return back()->with('success', 'Ticket d\'expédition joint avec succès.');
     }
 
+    // ─── Delete Shipping Ticket ───────────────────────────────────────────────
+    public function deleteShippingTicket(Order $order)
+    {
+        $user = auth()->user();
+        if (!$user->isAdmin()
+            && !$user->hasPermission('manage_orders')
+            && !$user->hasPermission('update_order_status')
+            && !$user->hasPermission('upload_shipping_ticket')) {
+            abort(403, 'Action non autorisée.');
+        }
+
+        if ($order->shipping_ticket_path) {
+            Storage::disk('public')->delete($order->shipping_ticket_path);
+            $order->shipping_ticket_path = null;
+            $order->save();
+        }
+
+        return back()->with('success', 'Ticket d\'expédition supprimé avec succès.');
+    }
+
     // ─── Edit Order Form ──────────────────────────────────────────────────────
     public function edit(Order $order)
     {

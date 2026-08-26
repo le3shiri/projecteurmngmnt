@@ -118,7 +118,7 @@
                                 <th style="width: 20%;">Code</th>
                                 <th style="width: 40%;">Désignation</th>
                                 <th style="width: 15%;">Qté</th>
-                                <th style="width: 25%;">Prix HT (DH)</th>
+                                <th style="width: 25%;">Prix (DH)</th>
                                 <th></th>
                             </tr>
                         </thead>
@@ -146,11 +146,54 @@
                     </table>
                 </div>
 
-                <div class="form-row" style="margin-top: 1rem;">
-                    <div class="form-group">
-                        <label class="form-label" for="tva_rate">Taux TVA (%)</label>
-                        <input type="number" step="0.1" name="tva_rate" id="tva_rate" class="form-control" value="20" oninput="updateLivePreview()">
+                <!-- TVA Toggle Section -->
+                <div style="margin-top: 1rem; padding: 1rem; background: rgba(15,23,42,0.5); border: 1px solid var(--border-color); border-radius: 10px;">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 0;">
+                        <!-- Toggle Switch -->
+                        <label style="position: relative; display: inline-block; width: 48px; height: 26px; cursor: pointer; flex-shrink: 0;">
+                            <input type="checkbox" id="tva_toggle" onchange="toggleTva(this.checked)" style="opacity:0; width:0; height:0;">
+                            <span id="tva_toggle_slider" style="
+                                position: absolute; cursor: pointer;
+                                top: 0; left: 0; right: 0; bottom: 0;
+                                background: #374151;
+                                transition: 0.3s; border-radius: 26px;
+                            ">
+                                <span style="
+                                    position: absolute; content: '';
+                                    height: 18px; width: 18px;
+                                    left: 4px; bottom: 4px;
+                                    background: #9ca3af;
+                                    transition: 0.3s; border-radius: 50%;
+                                    display: block;
+                                "></span>
+                            </span>
+                        </label>
+                        <div>
+                            <div style="font-weight: 600; font-size: 0.9rem; color: var(--text-primary);">Appliquer la TVA</div>
+                            <div style="font-size: 0.78rem; color: var(--text-secondary);">Par défaut : prix HT uniquement, sans TVA</div>
+                        </div>
                     </div>
+
+                    <!-- TVA Fields (hidden by default) -->
+                    <div id="tva_fields" style="display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed var(--border-color);">
+                        <div class="form-row">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label class="form-label" for="tva_rate">Taux TVA (%)</label>
+                                <input type="number" step="0.1" name="tva_rate" id="tva_rate" class="form-control" value="20" oninput="updateLivePreview()" placeholder="Ex: 20">
+                            </div>
+                        </div>
+                        <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 8px; margin-bottom: 0;">
+                            <i class="fa-solid fa-circle-info"></i>
+                            Les prix saisis dans le tableau sont considérés comme <strong>Prix HT</strong>.
+                            La TVA sera calculée automatiquement.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Hidden field to always send tva_rate=0 when toggle is OFF -->
+                <input type="hidden" id="tva_rate_hidden" name="tva_rate" value="0">
+
+                <div class="form-row" style="margin-top: 1rem;">
                     <div class="form-group">
                         <label class="form-label" for="advances">Acomptes Versés (DH)</label>
                         <input type="number" step="0.01" name="advances" id="advances" class="form-control" value="{{ $order->advance_cash + $order->advance_transfer }}" oninput="updateLivePreview()">
@@ -220,7 +263,7 @@
                                 <th style="padding: 8px; text-align: left; border-top: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb;">RÉF</th>
                                 <th style="padding: 8px; text-align: left; border-top: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb;">DÉSIGNATION</th>
                                 <th style="padding: 8px; text-align: center; border-top: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb;">QTÉ</th>
-                                <th style="padding: 8px; text-align: right; border-top: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb;">P.U HT (DH)</th>
+                                <th id="preview-pu-header" style="padding: 8px; text-align: right; border-top: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb;">P.U (DH)</th>
                                 <th style="padding: 8px; text-align: right; border-top: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb;">TOTAL (DH)</th>
                             </tr>
                         </thead>
@@ -232,16 +275,18 @@
                     <!-- Totals -->
                     <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
                         <table style="width: 50%; border-collapse: collapse; font-size: 12px;">
-                            <tr>
+                            <!-- Shown only when TVA is ON -->
+                            <tr id="row-total-ht" style="display: none;">
                                 <td style="padding: 4px 8px; font-weight: bold; color: #374151;">Total HT:</td>
                                 <td style="padding: 4px 8px; text-align: right;" id="preview-total-ht">0,00 DH</td>
                             </tr>
-                            <tr>
-                                <td style="padding: 4px 8px; font-weight: bold; color: #374151;">TVA (<span id="preview-tva-rate">20</span>%):</td>
+                            <tr id="row-tva" style="display: none;">
+                                <td style="padding: 4px 8px; font-weight: bold; color: #374151;">TVA (<span id="preview-tva-rate">0</span>%):</td>
                                 <td style="padding: 4px 8px; text-align: right;" id="preview-tva-amount">0,00 DH</td>
                             </tr>
+                            <!-- Always shown -->
                             <tr style="font-weight: bold; font-size: 13px; color: #111827;">
-                                <td style="padding: 4px 8px;">Total TTC:</td>
+                                <td style="padding: 4px 8px;" id="preview-total-label">Total Commande:</td>
                                 <td style="padding: 4px 8px; text-align: right;" id="preview-total-ttc">0,00 DH</td>
                             </tr>
                             <tr style="color: #059669; font-weight: bold;">
@@ -278,6 +323,39 @@
 @section('scripts')
 <script>
     let editorRowIndex = {{ count($order->items) }};
+    let tvaEnabled = false;
+
+    // Style constants for the toggle
+    const SLIDER_ON_BG  = 'var(--primary, #d4af37)';
+    const SLIDER_OFF_BG = '#374151';
+    const KNOB_ON_COLOR = '#ffffff';
+    const KNOB_OFF_COLOR = '#9ca3af';
+
+    function toggleTva(enabled) {
+        tvaEnabled = enabled;
+
+        // Visual toggle styling
+        const sliderEl = document.getElementById('tva_toggle_slider');
+        const knobEl   = sliderEl ? sliderEl.querySelector('span') : null;
+        if (sliderEl) sliderEl.style.background = enabled ? SLIDER_ON_BG : SLIDER_OFF_BG;
+        if (knobEl) {
+            knobEl.style.transform  = enabled ? 'translateX(22px)' : 'translateX(0)';
+            knobEl.style.background = enabled ? KNOB_ON_COLOR : KNOB_OFF_COLOR;
+        }
+
+        // Show / hide the TVA fields
+        document.getElementById('tva_fields').style.display = enabled ? 'block' : 'none';
+
+        // Manage the form input names so only one tva_rate is submitted
+        const tvaRateInput   = document.getElementById('tva_rate');
+        const hiddenTvaInput = document.getElementById('tva_rate_hidden');
+        if (tvaRateInput) {
+            tvaRateInput.disabled = !enabled; // disabled fields are excluded from POST
+        }
+        hiddenTvaInput.disabled = enabled; // the hidden 0-value field is only active when toggle is OFF
+
+        updateLivePreview();
+    }
 
     function addEditorRow() {
         const tbody = document.getElementById('editor-items-tbody');
@@ -373,24 +451,44 @@
             tbody.appendChild(ptr);
         });
 
-        // Totals
-        const tvaRate = parseFloat(document.getElementById('tva_rate').value) || 0;
-        const tvaAmount = totalHt * (tvaRate / 100);
-        const totalTtc = totalHt + tvaAmount;
-        const advances = parseFloat(document.getElementById('advances').value) || 0;
+        // Totals — respect TVA toggle
+        let tvaRate   = 0;
+        let tvaAmount = 0;
+        let totalTtc  = totalHt;
+
+        if (tvaEnabled) {
+            const tvaRateInput = document.getElementById('tva_rate');
+            tvaRate   = parseFloat(tvaRateInput ? tvaRateInput.value : 0) || 0;
+            tvaAmount = totalHt * (tvaRate / 100);
+            totalTtc  = totalHt + tvaAmount;
+        }
+
+        const advances  = parseFloat(document.getElementById('advances').value) || 0;
         const remaining = Math.max(0, totalTtc - advances);
 
-        document.getElementById('preview-total-ht').textContent = totalHt.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' DH';
-        document.getElementById('preview-tva-rate').textContent = tvaRate;
-        document.getElementById('preview-tva-amount').textContent = tvaAmount.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' DH';
-        document.getElementById('preview-total-ttc').textContent = totalTtc.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' DH';
-        document.getElementById('preview-advances').textContent = advances.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' DH';
-        document.getElementById('preview-remaining').textContent = remaining.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' DH';
+        // Toggle visibility of HT / TVA rows
+        document.getElementById('row-total-ht').style.display = tvaEnabled ? 'table-row' : 'none';
+        document.getElementById('row-tva').style.display      = tvaEnabled ? 'table-row' : 'none';
 
-        document.getElementById('preview-words').textContent = `TOTAL TTC: ${totalTtc.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DH`;
+        // Update preview table header
+        document.getElementById('preview-pu-header').textContent = tvaEnabled ? 'P.U HT (DH)' : 'P.U (DH)';
+        document.getElementById('preview-total-label').textContent = tvaEnabled ? 'Total TTC:' : 'Total Commande:';
+
+        document.getElementById('preview-total-ht').textContent    = totalHt.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' DH';
+        document.getElementById('preview-tva-rate').textContent    = tvaRate;
+        document.getElementById('preview-tva-amount').textContent  = tvaAmount.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' DH';
+        document.getElementById('preview-total-ttc').textContent   = totalTtc.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' DH';
+        document.getElementById('preview-advances').textContent    = advances.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' DH';
+        document.getElementById('preview-remaining').textContent   = remaining.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' DH';
+
+        const wordsLabel = tvaEnabled ? 'TOTAL TTC' : 'TOTAL';
+        document.getElementById('preview-words').textContent = `${wordsLabel}: ${totalTtc.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DH`;
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+        // Ensure hidden field active & TVA rate input disabled on load
+        document.getElementById('tva_rate').disabled        = true;
+        document.getElementById('tva_rate_hidden').disabled = false;
         updateLivePreview();
     });
 </script>
