@@ -151,6 +151,38 @@ class UserController extends Controller
         return redirect()->route('users.index')->with('success', "Le compte de {$user->name} a été {$status}.");
     }
 
+    public function destroy(User $user)
+    {
+        $currentUser = auth()->user();
+
+        if (!$currentUser->isAdmin() && !$currentUser->hasPermission('delete_users')) {
+            abort(403, 'Vous n\'avez pas la permission de supprimer des membres de l\'équipe.');
+        }
+
+        if ($user->id === $currentUser->id) {
+            return back()->with('error', 'Vous ne pouvez pas supprimer votre propre compte.');
+        }
+
+        \DB::transaction(function () use ($user) {
+            if ($user->cin_recto_path) {
+                Storage::disk('public')->delete($user->cin_recto_path);
+            }
+            if ($user->cin_verso_path) {
+                Storage::disk('public')->delete($user->cin_verso_path);
+            }
+            if ($user->cin_card_path && $user->cin_card_path !== $user->cin_recto_path) {
+                Storage::disk('public')->delete($user->cin_card_path);
+            }
+            if ($user->engagement_letter_path) {
+                Storage::disk('public')->delete($user->engagement_letter_path);
+            }
+
+            $user->delete();
+        });
+
+        return redirect()->route('users.index')->with('success', "Le membre {$user->name} a été supprimé avec succès.");
+    }
+
     public function permissionsIndex()
     {
         $modules = [
@@ -158,7 +190,8 @@ class UserController extends Controller
                 'view_dashboard' => 'Accéder au tableau de bord'
             ],
             'Gestion Équipe / Agents' => [
-                'manage_users' => 'Gérer les collaborateurs (Créer/Modifier/Activer)'
+                'manage_users' => 'Gérer les collaborateurs (Créer/Modifier/Activer)',
+                'delete_users' => 'Supprimer des collaborateurs / membres d\'équipe'
             ],
             'Base Clients' => [
                 'view_customers' => 'Consulter la liste des clients',

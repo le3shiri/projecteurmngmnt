@@ -104,10 +104,20 @@
                                 @if($user->id !== auth()->id())
                                     <form action="{{ route('users.toggle', $user->id) }}" method="POST">
                                         @csrf
-                                        <button type="submit" class="btn btn-{{ $user->is_active ? 'danger' : 'success' }} btn-sm">
+                                        <button type="submit" class="btn btn-{{ $user->is_active ? 'danger' : 'success' }} btn-sm" title="{{ $user->is_active ? 'Désactiver' : 'Activer' }}">
                                             <i class="fa-solid fa-power-off"></i> {{ $user->is_active ? 'Désactiver' : 'Activer' }}
                                         </button>
                                     </form>
+
+                                    @if(auth()->user()->isAdmin() || auth()->user()->hasPermission('delete_users'))
+                                        <form action="{{ route('users.destroy', $user->id) }}" method="POST" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer définitivement ce collaborateur ({{ $user->name }}) ?');" style="display: inline-flex;">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-danger btn-sm" title="Supprimer ce collaborateur">
+                                                <i class="fa-solid fa-trash-can"></i>
+                                            </button>
+                                        </form>
+                                    @endif
                                 @endif
                             </div>
                         </td>

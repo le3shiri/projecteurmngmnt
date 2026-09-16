@@ -62,8 +62,12 @@ class OrderController extends Controller
 
     public function create()
     {
+        $user = auth()->user();
         $customers = Customer::orderBy('name')->get();
-        $products = Product::where('is_active', true)->where('stock', '>', 0)->get();
+        $products = Product::where('is_active', true)->where('stock', '>', 0)->with('agentCommissions')->get()->map(function($prod) use ($user) {
+            $prod->current_commission = $prod->getCommissionForAgent($user->id);
+            return $prod;
+        });
         return view('orders.create', compact('customers', 'products'));
     }
 
@@ -84,10 +88,12 @@ class OrderController extends Controller
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.unit_price' => 'required|numeric|min:0',
+            'items.*.description' => 'nullable|string',
+            'items.*.logo' => 'nullable|file|mimes:jpeg,png,jpg,gif,svg,webp,pdf|max:5120',
             
             'advance_cash' => 'nullable|numeric|min:0',
             'advance_transfer' => 'nullable|numeric|min:0',
-            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:3072',
+            'logo' => 'nullable|file|mimes:jpeg,png,jpg,gif,svg,webp,pdf|max:5120',
             'notes' => 'nullable|string',
             'delivery_date' => 'nullable|date',
             'status' => 'required|in:pending,confirmed',
@@ -107,7 +113,7 @@ class OrderController extends Controller
             $customerId = $request->customer_id;
         }
 
-        // 2. Upload Logo
+        // 2. Upload Global Logo (if provided)
         $logoPath = null;
         if ($request->hasFile('logo')) {
             $logoPath = $request->file('logo')->store('logos', 'public');
@@ -119,7 +125,7 @@ class OrderController extends Controller
         // 4. Calculate total & remaining (prices are HT, so remaining is TTC - advances)
         $total = 0; // Total HT
         foreach ($request->items as $item) {
-            $total += $item['quantity'] * $item['unit_price'];
+            $total += ((int) $item['quantity']) * ((float) $item['unit_price']);
         }
 
         $advanceCash = $request->input('advance_cash', 0) ?: 0;
@@ -144,32 +150,43 @@ class OrderController extends Controller
         // 5. Create items & deduct stock
         $totalCommission = 0;
         $agentId = auth()->id();
-        foreach ($request->items as $itemData) {
+        foreach ($request->items as $index => $itemData) {
             $product = Product::find($itemData['product_id']);
-            $itemTotal = $itemData['quantity'] * $itemData['unit_price'];
+            $qty = (int) $itemData['quantity'];
+            $unitPrice = (float) $itemData['unit_price'];
+            $itemTotal = $qty * $unitPrice;
             $agentCommissionRate = $product->getCommissionForAgent($agentId);
-            $itemCommission = $itemData['quantity'] * $agentCommissionRate;
+            $itemCommission = $qty * $agentCommissionRate;
             $totalCommission += $itemCommission;
+
+            $itemLogoPath = null;
+            if ($request->hasFile("items.{$index}.logo")) {
+                $itemLogoPath = $request->file("items.{$index}.logo")->store('logos', 'public');
+            } elseif ($logoPath) {
+                $itemLogoPath = $logoPath;
+            }
 
             OrderItem::create([
                 'order_id' => $order->id,
                 'product_id' => $product->id,
                 'product_name' => $product->name,
                 'product_code' => $product->code,
-                'quantity' => $itemData['quantity'],
-                'unit_price' => $itemData['unit_price'],
+                'quantity' => $qty,
+                'unit_price' => $unitPrice,
                 'prix_fournisseur' => $product->prix_fournisseur ?? 0,
                 'commission_agent' => $agentCommissionRate,
                 'total' => $itemTotal,
+                'description' => $itemData['description'] ?? null,
+                'logo_path' => $itemLogoPath,
             ]);
 
             // Deduct stock
-            $product->decrement('stock', $itemData['quantity']);
+            $product->decrement('stock', $qty);
         }
 
         // 6. Calculate commission if agent created order
         $agent = auth()->user();
-        if ($agent->isAgent()) {
+        if ($agent->isAgent() || $totalCommission > 0) {
             Commission::create([
                 'agent_id' => $agent->id,
                 'order_id' => $order->id,
@@ -392,9 +409,21 @@ class OrderController extends Controller
                 }
             }
 
+            // Delete item logos
+            foreach ($order->items as $item) {
+                if ($item->logo_path && $item->logo_path !== $order->logo_path) {
+                    Storage::disk('public')->delete($item->logo_path);
+                }
+            }
+
             // Delete custom logo file if exists
             if ($order->logo_path) {
                 Storage::disk('public')->delete($order->logo_path);
+            }
+
+            // Delete shipping ticket if exists
+            if ($order->shipping_ticket_path) {
+                Storage::disk('public')->delete($order->shipping_ticket_path);
             }
 
             // Delete related records
@@ -601,7 +630,11 @@ class OrderController extends Controller
 
         $order->load(['customer', 'agent', 'items', 'supplierOrder']);
         $customers = Customer::orderBy('name')->get();
-        $products  = Product::where('is_active', true)->get();
+        $agentId = $order->agent_id ?? $user->id;
+        $products = Product::where('is_active', true)->with('agentCommissions')->get()->map(function($prod) use ($agentId) {
+            $prod->current_commission = $prod->getCommissionForAgent($agentId);
+            return $prod;
+        });
         return view('orders.edit', compact('order', 'customers', 'products'));
     }
 
@@ -619,15 +652,18 @@ class OrderController extends Controller
             'items.*.product_id'       => 'required|exists:products,id',
             'items.*.quantity'         => 'required|integer|min:1',
             'items.*.unit_price'       => 'required|numeric|min:0',
+            'items.*.description'      => 'nullable|string',
+            'items.*.logo'             => 'nullable|file|mimes:jpeg,png,jpg,gif,svg,webp,pdf|max:5120',
+            'items.*.existing_logo'    => 'nullable|string',
             'advance_cash'             => 'nullable|numeric|min:0',
             'advance_transfer'         => 'nullable|numeric|min:0',
-            'logo'                     => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:3072',
+            'logo'                     => 'nullable|file|mimes:jpeg,png,jpg,gif,svg,webp,pdf|max:5120',
             'notes'                    => 'nullable|string',
             'delivery_date'            => 'nullable|date',
             'status'                   => 'required|in:pending,confirmed,cancelled,shipped,delivered',
         ]);
 
-        // 1. Logo update
+        // 1. Logo update for order level
         if ($request->hasFile('logo')) {
             if ($order->logo_path) {
                 Storage::disk('public')->delete($order->logo_path);
@@ -635,7 +671,8 @@ class OrderController extends Controller
             $order->logo_path = $request->file('logo')->store('logos', 'public');
         }
 
-        // 2. Restore stock for existing items before recreating them
+        // 2. Restore stock for existing items & track old logos
+        $oldItemLogos = $order->items->pluck('logo_path')->filter()->toArray();
         foreach ($order->items as $oldItem) {
             if ($oldItem->product_id && $order->status !== 'cancelled') {
                 $product = Product::find($oldItem->product_id);
@@ -646,11 +683,13 @@ class OrderController extends Controller
         }
         $order->items()->delete();
 
-        // 3. Recalculate total & recreate items
+        // 3. Recalculate total & recreate items with individual logos and commissions
         $total = 0;
         $agentId = $order->agent_id ?? auth()->id();
         $totalCommission = 0;
-        foreach ($request->items as $itemData) {
+        $keptLogos = [];
+
+        foreach ($request->items as $index => $itemData) {
             $product = Product::find($itemData['product_id']);
             $qty     = (int) $itemData['quantity'];
             $price   = (float) $itemData['unit_price'];
@@ -659,6 +698,16 @@ class OrderController extends Controller
 
             $agentCommissionRate = $product->getCommissionForAgent($agentId);
             $totalCommission += $qty * $agentCommissionRate;
+
+            $itemLogoPath = null;
+            if ($request->hasFile("items.{$index}.logo")) {
+                $itemLogoPath = $request->file("items.{$index}.logo")->store('logos', 'public');
+            } elseif (!empty($itemData['existing_logo'])) {
+                $itemLogoPath = $itemData['existing_logo'];
+                $keptLogos[] = $itemLogoPath;
+            } elseif ($order->logo_path) {
+                $itemLogoPath = $order->logo_path;
+            }
 
             OrderItem::create([
                 'order_id'          => $order->id,
@@ -670,11 +719,20 @@ class OrderController extends Controller
                 'prix_fournisseur'  => $product->prix_fournisseur ?? 0,
                 'commission_agent'  => $agentCommissionRate,
                 'total'             => $itemTotal,
+                'description'       => $itemData['description'] ?? null,
+                'logo_path'         => $itemLogoPath,
             ]);
 
             // Deduct stock for new quantities
             if ($request->status !== 'cancelled') {
                 $product->decrement('stock', $qty);
+            }
+        }
+
+        // Clean up old replaced item logos that were discarded
+        foreach ($oldItemLogos as $oldLogo) {
+            if (!in_array($oldLogo, $keptLogos) && $oldLogo !== $order->logo_path) {
+                Storage::disk('public')->delete($oldLogo);
             }
         }
 
@@ -705,6 +763,14 @@ class OrderController extends Controller
         // 6. Update agent commission if applicable
         if ($order->commission) {
             $order->commission()->update(['amount' => $totalCommission]);
+        } elseif ($totalCommission > 0 && $order->agent_id) {
+            Commission::create([
+                'agent_id' => $order->agent_id,
+                'order_id' => $order->id,
+                'rate' => 0.00,
+                'amount' => $totalCommission,
+                'status' => 'pending',
+            ]);
         }
 
         return redirect()->route('orders.show', $order->id)->with('success', 'Commande mise à jour avec succès.');

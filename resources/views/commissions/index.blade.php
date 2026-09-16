@@ -156,6 +156,11 @@
                                 <a href="{{ route('orders.show', $comm->order->id) }}" style="color: var(--primary); font-weight: 600; text-decoration: none;">
                                     {{ $comm->order->code }}
                                 </a>
+                                @if($comm->order->items && $comm->order->items->count() > 0)
+                                    <small style="display: block; color: var(--text-secondary); font-size: 0.75rem;">
+                                        {{ $comm->order->items->sum('quantity') }} article(s) / projecteur(s)
+                                    </small>
+                                @endif
                             @else
                                 <span style="color: var(--text-secondary);">Commande supprimée</span>
                             @endif

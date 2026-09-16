@@ -203,12 +203,15 @@ Route::middleware(['role'])->group(function () {
 
     // Team / Collaborators
     Route::middleware(['permission:manage_users'])->group(function () {
-        Route::resource('users', UserController::class);
+        Route::resource('users', UserController::class)->except(['destroy']);
         Route::post('users/{user}/toggle', [UserController::class, 'toggleStatus'])->name('users.toggle');
 
         // Permissions settings UI
         Route::get('permissions', [UserController::class, 'permissionsIndex'])->name('permissions.index');
         Route::post('permissions', [UserController::class, 'permissionsUpdate'])->name('permissions.update');
+    });
+    Route::middleware(['permission:delete_users'])->group(function () {
+        Route::delete('users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
     });
 
     // Expenses
@@ -277,3 +280,16 @@ Route::get('/migrate-db', function () {
         return "<h2 style='color:#ef4444; font-family: sans-serif;'>❌ Erreur de migration :</h2><pre style='background:#0f172a; color:#ef4444; padding:15px; border-radius:8px;'>{$e->getMessage()}</pre>";
     }
 });
+
+// Test routes for Funny Error Pages
+Route::get('/test-error', function () {
+    return response()->view('errors.500', [], 500);
+})->name('test.error.500');
+
+Route::get('/test-404', function () {
+    return response()->view('errors.404', [], 404);
+})->name('test.error.404');
+
+Route::get('/test-403', function () {
+    return response()->view('errors.403', [], 403);
+})->name('test.error.403');

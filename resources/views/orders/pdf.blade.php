@@ -242,7 +242,12 @@
             @foreach($order->items as $item)
                 <tr>
                     <td class="ref-code">{{ $item->product_code }}</td>
-                    <td>{!! $item->formatted_name ?? $item->product_name !!}</td>
+                    <td>
+                        <div>{!! $item->formatted_name ?? $item->product_name !!}</div>
+                        @if(!empty($item->description))
+                            <div style="font-size: 10px; color: #6b7280; font-style: italic; margin-top: 2px;">{!! $item->description !!}</div>
+                        @endif
+                    </td>
                     <td style="text-align: center;">{{ $item->quantity }}</td>
                     <td style="text-align: right;">{{ number_format($item->unit_price, 2, ',', ' ') }}</td>
                     <td style="text-align: right; font-weight: bold;">{{ number_format($item->quantity * $item->unit_price, 2, ',', ' ') }}</td>

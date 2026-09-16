@@ -213,26 +213,66 @@
         
         <!-- Cart Items -->
         <div class="glass-card" style="margin: 0;">
-            <h3 class="card-title">Détails des articles commandés</h3>
+            <h3 class="card-title"><i class="fa-solid fa-boxes-packing" style="color: var(--primary);"></i> Détails des projecteurs et articles commandés</h3>
             <div class="table-responsive">
-                <table class="table">
+                <table class="table" style="vertical-align: middle;">
                     <thead>
                         <tr>
-                            <th>Référence</th>
-                            <th>Description</th>
+                            <th>Référence & Article</th>
+                            <th style="text-align: center;">Logo / Gobo Gravure</th>
                             <th style="text-align: center;">Quantité</th>
                             <th>Prix Unitaire HT</th>
+                            @if(auth()->user()->isAdmin() || auth()->user()->isAgent() || auth()->user()->hasPermission('view_commissions'))
+                                <th style="text-align: center;">Commission</th>
+                            @endif
                             <th style="text-align: right;">Total HT</th>
                         </tr>
                     </thead>
                     <tbody>
+                        @php
+                            $totalOrderComm = 0;
+                        @endphp
                         @foreach($order->items as $item)
+                            @php
+                                $itemComm = $item->quantity * ($item->commission_agent ?? 0);
+                                $totalOrderComm += $itemComm;
+                                $itemLogo = $item->logo_path ?: $order->logo_path;
+                            @endphp
                             <tr>
-                                <td style="font-weight: 600; color: var(--primary);">{{ $item->product_code }}</td>
-                                <td>{{ $item->product_name }}</td>
-                                <td style="text-align: center;">{{ $item->quantity }}</td>
+                                <td>
+                                    <div style="font-weight: 700; color: var(--primary);">{{ $item->product_code }}</div>
+                                    <div style="font-weight: 600; color: #fff;">{{ $item->product_name }}</div>
+                                    @if($item->description)
+                                        <small style="color: var(--text-secondary); display: block; font-style: italic; margin-top: 2px;">
+                                            <i class="fa-solid fa-tag"></i> {{ $item->description }}
+                                        </small>
+                                    @endif
+                                </td>
+                                <td style="text-align: center;">
+                                    @if($itemLogo)
+                                        <div style="display: inline-flex; flex-direction: column; align-items: center; gap: 4px;">
+                                            <a href="{{ asset('public-storage/' . $itemLogo) }}" target="_blank" title="Agrandir le logo" style="display: inline-block; background: #000; padding: 4px; border-radius: 6px; border: 1px solid var(--border-color);">
+                                                <img src="{{ asset('public-storage/' . $itemLogo) }}" alt="Logo Gobo" style="max-height: 40px; max-width: 60px; object-fit: contain; display: block;">
+                                            </a>
+                                            <a href="{{ asset('public-storage/' . $itemLogo) }}" target="_blank" class="btn btn-secondary btn-sm" style="font-size: 0.7rem; padding: 2px 6px;">
+                                                <i class="fa-solid fa-download"></i> Logo
+                                            </a>
+                                        </div>
+                                    @else
+                                        <span style="color: var(--text-secondary); font-size: 0.8rem; opacity: 0.6;">- Aucun -</span>
+                                    @endif
+                                </td>
+                                <td style="text-align: center; font-weight: 700;">
+                                    <span class="badge" style="background: rgba(255,255,255,0.1); font-size: 0.9rem; padding: 4px 10px;">{{ $item->quantity }}</span>
+                                </td>
                                 <td>{{ number_format($item->unit_price, 2, ',', ' ') }} DH</td>
-                                <td style="text-align: right; font-weight: 600;">{{ number_format($item->quantity * $item->unit_price, 2, ',', ' ') }} DH</td>
+                                @if(auth()->user()->isAdmin() || auth()->user()->isAgent() || auth()->user()->hasPermission('view_commissions'))
+                                    <td style="text-align: center; color: #10b981; font-weight: 600; font-size: 0.9rem;">
+                                        {{ number_format($itemComm, 2, ',', ' ') }} DH
+                                        <small style="display: block; font-size: 0.75rem; color: var(--text-secondary);">({{ number_format($item->commission_agent ?? 0, 2, ',', ' ') }} / u)</small>
+                                    </td>
+                                @endif
+                                <td style="text-align: right; font-weight: 700; color: #fff;">{{ number_format($item->quantity * $item->unit_price, 2, ',', ' ') }} DH</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -245,6 +285,11 @@
             <!-- Total summary right block -->
             <div style="display: flex; flex-direction: column; align-items: flex-end; margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1rem; gap: 8px;">
                 <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary);">Total Commande : <span>{{ number_format($order->total, 2, ',', ' ') }} DH</span></div>
+                @if(auth()->user()->isAdmin() || auth()->user()->isAgent() || auth()->user()->hasPermission('view_commissions'))
+                    <div style="font-size: 0.95rem; color: #10b981; font-weight: 600;">
+                        <i class="fa-solid fa-coins"></i> Total Commission Agent : <span>{{ number_format($order->commission->amount ?? $totalOrderComm, 2, ',', ' ') }} DH</span>
+                    </div>
+                @endif
                 <div style="font-size: 0.95rem; color: var(--warning);">Acomptes versés : <span style="font-weight: 600;">{{ number_format($order->total_advances, 2, ',', ' ') }} DH</span></div>
                 <div style="font-size: 1.3rem; color: var(--primary); font-weight: 800; border-top: 1px dashed var(--border-color); padding-top: 8px; margin-top: 4px;">Solde Restant : {{ number_format($computedRemaining, 2, ',', ' ') }} DH</div>
             </div>

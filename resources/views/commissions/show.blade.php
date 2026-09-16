@@ -108,9 +108,16 @@
                         <td>{{ $comm->order ? number_format($comm->order->total, 2, ',', ' ') . ' DH' : '-' }}</td>
                         <td>
                             @if($comm->order && $comm->order->items->count() > 0)
-                                <ul style="margin: 0; padding-left: 15px; font-size: 0.82rem; color: var(--text-secondary);">
+                                <ul style="margin: 0; padding-left: 15px; font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5;">
                                     @foreach($comm->order->items as $item)
-                                        <li>{{ $item->quantity }}x {{ $item->product_name }} ({{ number_format($item->commission_agent, 2, ',', ' ') }} DH/un)</li>
+                                        @php
+                                            $lineComm = $item->quantity * ($item->commission_agent ?? 0);
+                                        @endphp
+                                        <li>
+                                            <strong style="color: #fff;">{{ $item->quantity }}x</strong> {{ $item->product_name }} 
+                                            <span style="color: #10b981; font-weight: 600;">({{ number_format($lineComm, 2, ',', ' ') }} DH)</span>
+                                            <small style="color: var(--text-secondary);">[{{ number_format($item->commission_agent ?? 0, 2, ',', ' ') }}/u]</small>
+                                        </li>
                                     @endforeach
                                 </ul>
                             @else

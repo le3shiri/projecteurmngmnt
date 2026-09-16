@@ -141,39 +141,47 @@
                     </div>
 
                     <h4 style="font-size: 0.95rem; color: #fff; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
-                        <i class="fa-solid fa-boxes-packing" style="color: var(--primary);"></i> Articles à préparer / emballer :
+                        <i class="fa-solid fa-boxes-packing" style="color: var(--primary);"></i> Projecteurs & Articles à préparer / graver :
                     </h4>
-                    <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px 14px; border: 1px solid var(--border-color);">
-                        <ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px;">
+                    <div style="background: rgba(0,0,0,0.25); border-radius: 8px; padding: 12px 14px; border: 1px solid var(--border-color); margin-bottom: 12px;">
+                        <ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px;">
                             @foreach($order->items as $item)
-                                <li style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.04); padding-bottom: 6px;">
-                                    <div>
-                                        <code style="background: rgba(212,175,55,0.15); color: var(--primary); padding: 2px 6px; border-radius: 4px; font-size: 0.8rem;">{{ $item->product_code }}</code>
-                                        <span style="font-weight: 600; color: #fff; margin-left: 6px;">{{ $item->product_name }}</span>
+                                @php
+                                    $itemLogo = $item->logo_path ?: $order->logo_path;
+                                @endphp
+                                <li style="border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 10px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; flex-wrap: wrap;">
+                                        <div style="flex: 1;">
+                                            <code style="background: rgba(212,175,55,0.15); color: var(--primary); padding: 2px 6px; border-radius: 4px; font-size: 0.8rem;">{{ $item->product_code }}</code>
+                                            <span style="font-weight: 700; color: #fff; margin-left: 6px; font-size: 0.95rem;">{{ $item->product_name }}</span>
+                                            @if($item->description)
+                                                <div style="font-size: 0.8rem; color: #cbd5e1; margin-top: 4px; background: rgba(255,255,255,0.04); padding: 4px 8px; border-radius: 4px;">
+                                                    <i class="fa-solid fa-pen-nib" style="color: var(--warning);"></i> <strong>Instructions :</strong> {{ $item->description }}
+                                                </div>
+                                            @endif
+                                        </div>
+                                        <div style="background: rgba(255,255,255,0.12); padding: 4px 12px; border-radius: 12px; font-weight: 700; color: #fff; font-size: 0.88rem; white-space: nowrap;">
+                                            Quantité : {{ $item->quantity }}
+                                        </div>
                                     </div>
-                                    <div style="background: rgba(255,255,255,0.1); padding: 2px 10px; border-radius: 12px; font-weight: 700; color: #fff; font-size: 0.85rem;">
-                                        Qté : {{ $item->quantity }}
-                                    </div>
+
+                                    @if($itemLogo)
+                                        <div style="margin-top: 8px; background: rgba(212, 175, 55, 0.08); border: 1px dashed var(--primary); padding: 8px 12px; border-radius: 6px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                                            <div style="display: flex; align-items: center; gap: 10px;">
+                                                <a href="{{ asset('public-storage/' . $itemLogo) }}" target="_blank" style="background: #000; padding: 2px; border-radius: 4px; display: inline-block;">
+                                                    <img src="{{ asset('public-storage/' . $itemLogo) }}" alt="Logo Gobo" style="max-height: 36px; max-width: 50px; object-fit: contain; display: block;">
+                                                </a>
+                                                <span style="font-size: 0.8rem; color: #fff; font-weight: 600;">Logo pour ce projecteur</span>
+                                            </div>
+                                            <a href="{{ asset('public-storage/' . $itemLogo) }}" target="_blank" class="btn btn-primary btn-sm" style="font-size: 0.75rem; padding: 3px 8px;">
+                                                <i class="fa-solid fa-download"></i> Télécharger Logo Gobo
+                                            </a>
+                                        </div>
+                                    @endif
                                 </li>
                             @endforeach
                         </ul>
                     </div>
-
-                    <!-- Custom Logo Preview/Download if attached -->
-                    @if($order->logo_path)
-                        <div style="margin-top: 12px; background: rgba(212, 175, 55, 0.08); border: 1px dashed var(--primary); padding: 10px 14px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <i class="fa-solid fa-file-image" style="font-size: 1.8rem; color: var(--primary);"></i>
-                                <div>
-                                    <div style="font-weight: 700; font-size: 0.9rem; color: #fff;">Logo Personnalisé Client</div>
-                                    <div style="font-size: 0.78rem; color: var(--text-secondary);">Image fournie pour l'impression / gravure de la lentille (Gobo)</div>
-                                </div>
-                            </div>
-                            <a href="{{ asset('public-storage/' . $order->logo_path) }}" target="_blank" class="btn btn-primary btn-sm" style="font-size: 0.8rem;">
-                                <i class="fa-solid fa-download"></i> Voir / Télécharger Logo
-                            </a>
-                        </div>
-                    @endif
 
                     {{-- Shipping Ticket --}}
                     @if($order->shipping_ticket_path)

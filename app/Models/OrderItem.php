@@ -20,6 +20,7 @@ class OrderItem extends Model
         'commission_agent',
         'total',
         'description',
+        'logo_path',
     ];
 
     protected $casts = [
