@@ -105,7 +105,7 @@
                         <div style="width: {{ $file->progress }}%; background: var(--primary); height: 100%; border-radius: 4px;"></div>
                     </div>
                     <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-secondary);">
-                        <span>Agent: {{ $file->agent->name }}</span>
+                        <span>Agent: {{ $file->agent->name ?? 'Non assigné' }}</span>
                         <span>Créé le: {{ $file->created_at->format('d/m/Y') }}</span>
                     </div>
                 </div>

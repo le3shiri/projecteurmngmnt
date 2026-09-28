@@ -10,7 +10,12 @@
     </div>
 </div>
 
-<div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem;">
+@php
+    $canManage = auth()->user()->isAdmin() || auth()->user()->hasPermission('manage_prospects');
+@endphp
+
+<div style="display: grid; grid-template-columns: {{ $canManage ? '1fr 2fr' : '1fr' }}; gap: 1.5rem;">
+    @if($canManage)
     <!-- Upload Form -->
     <div class="glass-card" style="margin: 0; align-self: start;">
         <h3 class="card-title">Injecter un fichier de prospects</h3>
@@ -44,6 +49,7 @@
             </button>
         </form>
     </div>
+    @endif
 
     <!-- Files Table logs -->
     <div class="glass-card" style="margin: 0;">
@@ -80,7 +86,13 @@
                                     {{ $file->name }}
                                 </a>
                             </td>
-                            <td>{{ $file->agent->name }}</td>
+                            <td>
+                                @if($file->agent)
+                                    {{ $file->agent->name }}
+                                @else
+                                    <span style="color: var(--text-secondary); font-style: italic;">Non assigné</span>
+                                @endif
+                            </td>
                             <td>{{ $file->prospects_count }} prospects</td>
                             <td>
                                 <div style="display: flex; align-items: center; gap: 8px;">
@@ -96,13 +108,15 @@
                                     <a href="{{ route('prospects.show', $file->id) }}" class="btn btn-secondary btn-sm">
                                         <i class="fa-solid fa-eye"></i> Suivi
                                     </a>
+                                    @if(auth()->user()->isAdmin())
                                     <form action="{{ route('prospects.destroyFile', $file->id) }}" method="POST" onsubmit="return confirm('Voulez-vous supprimer cette campagne de prospection ?')">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-danger btn-sm">
+                                        <button type="submit" class="btn btn-danger btn-sm" title="Supprimer la campagne (Admin uniquement)">
                                             <i class="fa-solid fa-trash"></i>
                                         </button>
                                     </form>
+                                    @endif
                                 </div>
                             </td>
                         </tr>

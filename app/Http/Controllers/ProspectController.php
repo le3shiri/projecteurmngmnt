@@ -26,7 +26,7 @@ class ProspectController extends Controller
             $query->whereDate('created_at', '<=', $endDate);
         }
 
-        if ($user->isAdmin() || $user->hasPermission('manage_prospects')) {
+        if ($user->isAdmin() || $user->hasPermission('manage_prospects') || !$user->isAgent()) {
             $files = $query->with(['agent', 'uploader'])->withCount('prospects')->latest()->get();
             $agents = User::where('role', 'agent')->where('is_active', true)->orderBy('name')->get();
             return view('prospects.admin_index', compact('files', 'agents', 'startDate', 'endDate'));
@@ -177,6 +177,11 @@ class ProspectController extends Controller
 
     public function destroyFile(ProspectFile $file)
     {
+        $user = auth()->user();
+        if (!$user || $user->isMediaBuyer() || !$user->isAdmin()) {
+            abort(403, 'Seul un administrateur peut supprimer une campagne de prospection.');
+        }
+
         if ($file->file_path) {
             Storage::disk('public')->delete($file->file_path);
         }

@@ -213,7 +213,7 @@ class UserController extends Controller
             ],
             'Prospection Téléphonique' => [
                 'view_prospects' => 'Accéder et appeler les prospects assignés',
-                'manage_prospects' => 'Importer (CSV) et supprimer des campagnes de prospection'
+                'manage_prospects' => 'Importer (CSV) des campagnes de prospection (Suppression réservée à l\'administrateur)'
             ],
             'Dépenses d\'Exploitation' => [
                 'view_expenses' => 'Consulter la liste des dépenses',
