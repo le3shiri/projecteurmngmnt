@@ -142,9 +142,36 @@
             background-color: #f9fafb;
             border: 1px solid #f3f4f6;
             border-left: 4px solid #d1d5db;
-            padding: 10px 14px;
+            padding: 8px 12px;
             border-radius: 4px;
-            margin-bottom: 30px;
+            margin-bottom: 12px;
+        }
+        .conditions-box {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-left: 3px solid #2563eb;
+            padding: 7px 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            page-break-inside: avoid;
+        }
+        .conditions-title {
+            font-size: 9px;
+            font-weight: bold;
+            color: #1e293b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 3px;
+        }
+        .conditions-list {
+            margin: 0;
+            padding-left: 14px;
+            font-size: 9px;
+            color: #334155;
+            line-height: 1.45;
+        }
+        .conditions-list li {
+            margin-bottom: 2px;
         }
         .words-title {
             font-size: 10px;
@@ -160,14 +187,20 @@
             font-style: italic;
             color: #1f2937;
         }
-        .footer {
-            margin-top: 35px;
+        .footer-legal-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 25px;
+            border: 1px solid #d1d5db;
+            page-break-inside: avoid;
+        }
+        .footer-legal-table td {
+            border: 1px solid #d1d5db;
             text-align: center;
-            font-size: 10px;
-            color: #9ca3af;
-            border-top: 1px solid #f3f4f6;
-            padding-top: 15px;
-            line-height: 1.5;
+            font-size: 9px;
+            line-height: 1.45;
+            padding: 5px 8px;
+            color: #111827;
         }
     </style>
 </head>
@@ -176,10 +209,12 @@
     <table class="header-table">
         <tr>
             <td style="width: 50%;">
-                @if($logoBase64)
-                    <img src="{{ $logoBase64 }}" class="logo-img" alt="Logo">
-                @else
-                    <div style="font-size: 22px; font-weight: bold; color: #2563eb;">PROJECTEUR LOGO</div>
+                @if(!isset($showLogo) || $showLogo)
+                    @if($logoBase64)
+                        <img src="{{ $logoBase64 }}" class="logo-img" alt="Logo">
+                    @else
+                        <div style="font-size: 22px; font-weight: bold; color: #2563eb;">PROJECTEUR LOGO</div>
+                    @endif
                 @endif
             </td>
             <td style="width: 50%;" class="doc-title-box">
@@ -201,19 +236,23 @@
 
     <div class="divider-line"></div>
 
+    @if((!isset($showEmitter) || $showEmitter) || (!isset($showCustomer) || $showCustomer))
     <table class="info-table">
         <tr>
-            <td>
+            @if(!isset($showEmitter) || $showEmitter)
+            <td style="{{ (!isset($showCustomer) || $showCustomer) ? 'width: 50%;' : 'width: 100%;' }}">
                 <div class="info-block-title">ÉMETTEUR</div>
                 <div class="info-content">
-                    <strong>{{ $emitterName ?? 'Projecteur CRM Inc.' }}</strong><br>
-                    {{ $emitterSubtitle ?? 'Boutique physique et en ligne' }}<br>
-                    {{ $emitterCountry ?? 'Maroc' }}<br>
-                    Téléphone: {{ $emitterPhone ?? '+212 600-000000' }}<br>
-                    Email: {{ $emitterEmail ?? 'contact@projecteurlogo.com' }}
+                    <strong>{{ $emitterName ?? 'Projecteur LOGO' }}</strong><br>
+                    Adresse : {{ $emitterAddress ?? 'Hay Nasr lot Oumnia num 27 magasin num 1 - Tanger.' }}<br>
+                    GSM : {{ $emitterPhone ?? '+212607056637' }}<br>
+                    Email : {{ $emitterEmail ?? 'worklogo47@gmail.com' }}<br>
+                    Site web : {{ $emitterWebsite ?? 'www.projecteurlogo.com' }}
                 </div>
             </td>
-            <td>
+            @endif
+            @if(!isset($showCustomer) || $showCustomer)
+            <td style="{{ (!isset($showEmitter) || $showEmitter) ? 'width: 50%;' : 'width: 100%;' }}">
                 <div class="info-block-title">CLIENT</div>
                 <div class="info-content">
                     <strong>{!! $customerNameFormatted !!}</strong><br>
@@ -225,8 +264,10 @@
                     Adresse: {!! !empty($customerAddressFormatted) ? $customerAddressFormatted : 'Non spécifiée' !!}
                 </div>
             </td>
+            @endif
         </tr>
     </table>
+    @endif
 
     <table class="items-table">
         <thead>
@@ -276,6 +317,7 @@
             <td style="text-align: right;">{{ number_format($totalTtc, 2, ',', ' ') }} DH</td>
         </tr>
         @endif
+        @if(!isset($showAdvances) || $showAdvances)
         <tr class="row-advances">
             <td>Acomptes versés:</td>
             <td style="text-align: right;">{{ number_format($advances, 2, ',', ' ') }} DH</td>
@@ -284,19 +326,62 @@
             <td><strong>Reste à régler:</strong></td>
             <td style="text-align: right;">{{ number_format($remaining, 2, ',', ' ') }} DH</td>
         </tr>
+        @endif
     </table>
 
-    @if(!empty($totalInWords))
-    <div class="words-box">
-        <div class="words-title">LA SOMME EN LETTRE</div>
-        <div class="words-value">{{ $totalInWords }}</div>
+    @if(((!isset($showWords) || $showWords) && !empty($totalInWords)) || ((!isset($showCachet) || $showCachet) && !empty($cachetBase64)))
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 12px; page-break-inside: avoid;">
+        <tr>
+            <td style="width: 55%; vertical-align: top; padding-right: 15px;">
+                @if((!isset($showWords) || $showWords) && !empty($totalInWords))
+                <div class="words-box" style="margin-bottom: 0;">
+                    <div class="words-title">LA SOMME EN LETTRE</div>
+                    <div class="words-value">{{ $totalInWords }}</div>
+                </div>
+                @endif
+            </td>
+            <td style="width: 45%; vertical-align: top; text-align: center;">
+                @if((!isset($showCachet) || $showCachet) && !empty($cachetBase64))
+                <div style="text-align: center; display: inline-block;">
+                    <div style="font-size: 8.5px; font-weight: bold; color: #4b5563; text-transform: uppercase; margin-bottom: 3px;">Cachet et Signature</div>
+                    <img src="{{ $cachetBase64 }}" style="max-height: 105px; max-width: 135px; object-fit: contain;" alt="Cachet et Signature">
+                </div>
+                @endif
+            </td>
+        </tr>
+    </table>
+    @endif
+
+    @if(!isset($showConditions) || $showConditions)
+    <div class="conditions-box">
+        <div class="conditions-title">INFORMATIONS & CONDITIONS DE COMMANDE</div>
+        <ul class="conditions-list">
+            <li>{{ $conditionDelivery ?? "Livraison sous 3 à 5 jours ouvrés après validation du devis et le versement de l'acompte." }}</li>
+            <li>{{ $conditionManufacturing ?? "La personnalisation et la fabrication de votre logo débutent immédiatement dès réception d’un acompte de 10% du montant total." }}</li>
+        </ul>
     </div>
     @endif
 
-    <div class="footer">
-        <p>Merci pour votre confiance. Projecteur Logo — Boutique physique et en ligne.</p>
-        <p style="font-size: 8px; margin-top: 3px; color: #d1d5db;">Document généré automatiquement via la plateforme CRM Projecteur.</p>
-    </div>
+    @if(!isset($showLegalFooter) || $showLegalFooter)
+    <table class="footer-legal-table">
+        <tr>
+            <td>
+                {{ $emitterName ?? 'Projecteur LOGO' }} - Adresse : {{ $emitterAddress ?? 'Hay Nasr lot Oumnia num 27 magasin num 1 - Tanger.' }}<br>
+                E-mail : {{ $emitterEmail ?? 'worklogo47@gmail.com' }} - Site web : {{ $emitterWebsite ?? 'www.projecteurlogo.com' }} - GSM: {{ $emitterPhone ?? '+212607056637' }}
+            </td>
+        </tr>
+        <tr>
+            <td>
+                ICE : {{ $emitterIce ?? '0040525690000032' }} - IF : {{ $emitterIf ?? '73411678' }} - Taxe Professionnelle N° : {{ $emitterTp ?? '7210/2026/5669' }}
+            </td>
+        </tr>
+        <tr>
+            <td>
+                RIB BMCE : {{ $emitterRib ?? '011 640 0000372100000583 28' }}
+            </td>
+        </tr>
+    </table>
+    @endif
 
 </body>
 </html>

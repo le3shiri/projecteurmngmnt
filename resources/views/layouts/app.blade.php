@@ -21,9 +21,12 @@
     <div class="app-container">
         <!-- Sidebar Navigation -->
         <aside class="sidebar">
-            <a href="{{ auth()->user()->isSupplier() ? route('supplier.index') : route('dashboard') }}" class="sidebar-logo">
-                <i class="fa-solid fa-circle-notch fa-spin"></i>
-                <span>ProjetEUR CRM</span>
+            <a href="{{ auth()->user()->isSupplier() ? route('supplier.index') : route('dashboard') }}" class="sidebar-logo" style="display: flex; align-items: center; gap: 10px;">
+                <img src="{{ asset('logo.png') }}" alt="Projecteur LOGO" style="max-height: 38px; width: auto; object-fit: contain;" onerror="this.style.display='none'; document.getElementById('sidebar-logo-fallback').style.display='inline-flex';">
+                <span id="sidebar-logo-fallback" style="display: none; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-circle-notch fa-spin"></i>
+                    <span>ProjetEUR CRM</span>
+                </span>
             </a>
             
             <ul class="sidebar-menu">

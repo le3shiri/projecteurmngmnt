@@ -22,7 +22,7 @@
     <form action="{{ route('orders.index') }}" method="GET" style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 1.5rem;">
         <input type="text" name="search" class="form-control" placeholder="Rechercher par code commande ou client..." value="{{ $search }}" style="max-width: 280px;">
         
-        <select name="status" class="form-control" style="max-width: 200px;">
+        <select name="status" class="form-control" style="max-width: 190px;">
             <option value="">Tous les statuts</option>
             <option value="pending" {{ $status == 'pending' ? 'selected' : '' }}>En attente de paiement</option>
             <option value="confirmed" {{ $status == 'confirmed' ? 'selected' : '' }}>Confirmée (Préparation)</option>
@@ -31,14 +31,26 @@
             <option value="cancelled" {{ $status == 'cancelled' ? 'selected' : '' }}>Annulée</option>
         </select>
 
-        <input type="date" name="start_date" class="form-control" value="{{ $startDate ?? '' }}" style="max-width: 160px;" title="Date début">
-        <input type="date" name="end_date" class="form-control" value="{{ $endDate ?? '' }}" style="max-width: 160px;" title="Date fin">
+        @if(!auth()->user()->isAgent() && !empty($agents))
+        <select name="agent_id" class="form-control" style="max-width: 200px;">
+            <option value="">Tous les commerciaux</option>
+            @foreach($agents as $ag)
+                <option value="{{ $ag->id }}" {{ (string)$agentId === (string)$ag->id ? 'selected' : '' }}>
+                    {{ $ag->name }}
+                </option>
+            @endforeach
+            <option value="none" {{ $agentId === 'none' ? 'selected' : '' }}>Direct (Sans commercial)</option>
+        </select>
+        @endif
+
+        <input type="date" name="start_date" class="form-control" value="{{ $startDate ?? '' }}" style="max-width: 150px;" title="Date début">
+        <input type="date" name="end_date" class="form-control" value="{{ $endDate ?? '' }}" style="max-width: 150px;" title="Date fin">
 
         <button type="submit" class="btn btn-secondary">
-            Filtrer
+            <i class="fa-solid fa-filter"></i> Filtrer
         </button>
 
-        @if($search || $status || $startDate || $endDate)
+        @if($search || $status || $startDate || $endDate || ($agentId !== null && $agentId !== ''))
             <a href="{{ route('orders.index') }}" class="btn btn-secondary">Réinitialiser</a>
         @endif
     </form>

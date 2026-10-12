@@ -100,13 +100,16 @@
                         <i class="fa-solid fa-eye"></i> Voir Détails
                     </a>
                     
-                    @if($sum['total_pending'] > 0)
-                        <form action="{{ route('commissions.pay_all', $sum['agent']->id) }}" method="POST" style="flex: 1;" onsubmit="return confirm('Voulez-vous marquer TOUTES les commissions en attente ({{ number_format($sum['total_pending'], 2, ',', ' ') }} DH) pour {{ $sum['agent']->name }} comme PAYÉES ?')">
-                            @csrf
-                            <button type="submit" class="btn btn-success btn-sm" style="width: 100%; justify-content: center;">
-                                <i class="fa-solid fa-hand-holding-dollar"></i> Payer Solde
-                            </button>
-                        </form>
+                    @if($sum['total_pending'] > 0 && (auth()->user()->isAdmin() || auth()->user()->hasPermission('manage_users')))
+                        <button type="button" 
+                                class="btn btn-success btn-sm btn-open-pay-modal" 
+                                style="flex: 1; justify-content: center;"
+                                data-agent-id="{{ $sum['agent']->id }}"
+                                data-agent-name="{{ addslashes($sum['agent']->name) }}"
+                                data-total-pending="{{ $sum['total_pending'] }}"
+                                data-commissions='@json($sum['pending_commissions'] ?? [])'>
+                            <i class="fa-solid fa-hand-holding-dollar"></i> Payer Solde
+                        </button>
                     @endif
                 </div>
             </div>
@@ -223,4 +226,6 @@
         {{ $commissions->links() }}
     </div>
 </div>
+
+@include('commissions.partials.pay_modal')
 @endsection

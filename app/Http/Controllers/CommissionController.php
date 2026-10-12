@@ -45,6 +45,26 @@ class CommissionController extends Controller
                 $totalPending = (clone $cQuery)->where('status', 'pending')->sum('amount');
                 $pendingCount = (clone $cQuery)->where('status', 'pending')->count();
 
+                $pendingCommissions = [];
+                if ($pendingCount > 0) {
+                    $pendingCommissions = (clone $cQuery)->where('status', 'pending')
+                        ->with(['order.customer'])
+                        ->latest()
+                        ->get()
+                        ->map(function ($comm) {
+                            return [
+                                'id' => $comm->id,
+                                'amount' => (float) $comm->amount,
+                                'order_id' => $comm->order_id,
+                                'order_code' => $comm->order ? $comm->order->code : ('#COMM-' . $comm->id),
+                                'order_status' => $comm->order ? $comm->order->status : 'pending',
+                                'order_date' => $comm->order && $comm->order->created_at ? $comm->order->created_at->format('d/m/Y') : $comm->created_at->format('d/m/Y'),
+                                'order_total' => $comm->order ? (float) $comm->order->total : 0,
+                                'customer_name' => $comm->order && $comm->order->customer ? $comm->order->customer->name : '-',
+                            ];
+                        })->values()->all();
+                }
+
                 if ($totalEarned > 0 || $pendingCount > 0 || !$selectedAgentId) {
                     $agentSummaries[] = [
                         'agent' => $agent,
@@ -52,6 +72,7 @@ class CommissionController extends Controller
                         'total_paid' => $totalPaid,
                         'total_pending' => $totalPending,
                         'pending_count' => $pendingCount,
+                        'pending_commissions' => $pendingCommissions,
                     ];
                 }
             }
@@ -168,9 +189,28 @@ class CommissionController extends Controller
 
         $commissions = $query->latest()->paginate(20)->withQueryString();
 
+        $pendingCommissions = Commission::where('agent_id', $user->id)
+            ->where('status', 'pending')
+            ->with(['order.customer'])
+            ->latest()
+            ->get()
+            ->map(function ($comm) {
+                return [
+                    'id' => $comm->id,
+                    'amount' => (float) $comm->amount,
+                    'order_id' => $comm->order_id,
+                    'order_code' => $comm->order ? $comm->order->code : ('#COMM-' . $comm->id),
+                    'order_status' => $comm->order ? $comm->order->status : 'pending',
+                    'order_date' => $comm->order && $comm->order->created_at ? $comm->order->created_at->format('d/m/Y') : $comm->created_at->format('d/m/Y'),
+                    'order_total' => $comm->order ? (float) $comm->order->total : 0,
+                    'customer_name' => $comm->order && $comm->order->customer ? $comm->order->customer->name : '-',
+                ];
+            })->values()->all();
+
         return view('commissions.show', compact(
             'user',
             'commissions',
+            'pendingCommissions',
             'totalEarned',
             'totalPaid',
             'totalPending',
@@ -236,42 +276,61 @@ class CommissionController extends Controller
 
     public function payAllAgentPending(Request $request, User $user)
     {
+        $currentUser = auth()->user();
+        if (!$currentUser->isAdmin() && !$currentUser->hasPermission('manage_users')) {
+            abort(403, 'Action non autorisée.');
+        }
+
         $request->validate([
+            'commission_ids' => 'nullable|array',
+            'commission_ids.*' => 'integer|exists:commissions,id',
             'notes' => 'nullable|string|max:500',
+            'paid_at' => 'nullable|date',
         ]);
 
-        $pendingCommissions = Commission::where('agent_id', $user->id)->where('status', 'pending')->with('order')->get();
+        $commissionIds = $request->input('commission_ids');
+
+        $query = Commission::where('agent_id', $user->id)
+            ->where('status', 'pending')
+            ->with('order');
+
+        if (!empty($commissionIds)) {
+            $query->whereIn('id', $commissionIds);
+        }
+
+        $pendingCommissions = $query->get();
 
         if ($pendingCommissions->isEmpty()) {
-            return back()->with('error', 'Aucune commission en attente de paiement pour cet agent.');
+            return back()->with('error', 'Aucune commission en attente de paiement sélectionnée pour cet agent.');
         }
 
         $totalPaidAmount = 0;
-        $notes = $request->input('notes') ?: 'Règlement global des commissions de l\'agent';
-        $now = now();
+        $notes = $request->input('notes') ?: 'Règlement des commissions de l\'agent';
+        $paidAt = $request->input('paid_at') ? \Carbon\Carbon::parse($request->input('paid_at')) : now();
 
         foreach ($pendingCommissions as $commission) {
             $totalPaidAmount += $commission->amount;
             $commission->update([
                 'status' => 'paid',
-                'paid_at' => $now,
+                'paid_at' => $paidAt,
                 'notes' => $notes,
             ]);
 
-            $orderCode = $commission->order->code ?? 'N/A';
+            $orderCode = $commission->order->code ?? ('#COMM-' . $commission->id);
 
             // Auto-add paid commission to Expenses
             \App\Models\Expense::create([
                 'title' => "Commission Agent - {$user->name} ({$orderCode})",
                 'category' => 'Commissions',
                 'amount' => $commission->amount,
-                'date' => $now,
-                'description' => "Règlement global de commission. Commande: {$orderCode}. Notes: {$notes}",
+                'date' => $paidAt,
+                'description' => "Règlement de commission pour la commande {$orderCode}. Notes: {$notes}",
                 'created_by' => auth()->id(),
             ]);
         }
 
-        return back()->with('success', 'Paiement effectué avec succès ! Total versé à ' . $user->name . ' : ' . number_format($totalPaidAmount, 2, ',', ' ') . ' DH (enregistré dans les dépenses).');
+        $count = $pendingCommissions->count();
+        return back()->with('success', "Paiement validé avec succès ! {$count} commande(s) réglée(s) pour {$user->name} (Total versé : " . number_format($totalPaidAmount, 2, ',', ' ') . " DH enregistré dans les dépenses).");
     }
 
     private function reconcileMissingCommissions()

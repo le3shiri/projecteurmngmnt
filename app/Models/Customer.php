@@ -21,7 +21,7 @@ class Customer extends Model
 
     public function creator()
     {
-        return $table->belongsTo(User::class, 'created_by');
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function orders()

@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\OrderItem;
 use App\Models\Commission;
 use App\Models\SupplierOrder;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
@@ -22,6 +23,7 @@ class OrderController extends Controller
         $search = $request->input('search');
         $startDate = $request->input('start_date');
         $endDate = $request->input('end_date');
+        $agentId = $request->input('agent_id');
 
         if ($user->isSupplier()) {
             return redirect()->route('supplier.index');
@@ -32,6 +34,12 @@ class OrderController extends Controller
         
         if ($user->isAgent()) {
             $query->where('agent_id', $user->id);
+        } elseif ($agentId !== null && $agentId !== '') {
+            if ($agentId === 'none') {
+                $query->whereNull('agent_id');
+            } else {
+                $query->where('agent_id', $agentId);
+            }
         }
 
         if ($status) {
@@ -55,9 +63,18 @@ class OrderController extends Controller
             $query->whereDate('created_at', '<=', $endDate);
         }
 
-        $orders = $query->latest()->paginate(15);
+        $orders = $query->latest()->paginate(15)->withQueryString();
 
-        return view('orders.index', compact('orders', 'status', 'search', 'startDate', 'endDate'));
+        $agents = [];
+        if (!$user->isAgent()) {
+            $agents = User::whereIn('role', ['agent', 'media_buyer', 'admin'])
+                ->orWhereHas('orders')
+                ->distinct()
+                ->orderBy('name')
+                ->get();
+        }
+
+        return view('orders.index', compact('orders', 'status', 'search', 'startDate', 'endDate', 'agentId', 'agents'));
     }
 
     public function create()
@@ -264,12 +281,9 @@ class OrderController extends Controller
 
         $order->load(['customer', 'agent', 'items']);
 
-        // Load company logo as base64
-        $logoPath = public_path('logo.png');
-        $logoBase64 = null;
-        if (file_exists($logoPath)) {
-            $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
-        }
+        // Load company logo and cachet as base64 with Hostinger multi-path resolution
+        $logoBase64 = $this->getBase64Asset('logo.png');
+        $cachetBase64 = $this->getBase64Asset('cachet-removebg-preview.png', ['cachet.jpeg']);
 
         // Arabic text shaper
         require_once base_path('vendor/khaled.alshamaa/ar-php/src/Arabic.php');
@@ -326,6 +340,26 @@ class OrderController extends Controller
             'advances' => $advances,
             'remaining' => $remaining,
             'totalInWords' => $totalInWords,
+            'emitterName' => 'Projecteur LOGO',
+            'emitterAddress' => 'Hay Nasr lot Oumnia num 27 magasin num 1 - Tanger.',
+            'emitterEmail' => 'worklogo47@gmail.com',
+            'emitterWebsite' => 'www.projecteurlogo.com',
+            'emitterPhone' => '+212607056637',
+            'emitterIce' => '0040525690000032',
+            'emitterIf' => '73411678',
+            'emitterTp' => '7210/2026/5669',
+            'emitterRib' => '011 640 0000372100000583 28',
+            'conditionDelivery' => "Livraison sous 3 à 5 jours ouvrés après validation du devis et le versement de l'acompte.",
+            'conditionManufacturing' => "La personnalisation et la fabrication de votre logo débutent immédiatement dès réception d’un acompte de 10% du montant total.",
+            'showConditions' => true,
+            'cachetBase64' => $cachetBase64,
+            'showCachet' => true,
+            'showLogo' => true,
+            'showEmitter' => true,
+            'showCustomer' => true,
+            'showAdvances' => true,
+            'showWords' => true,
+            'showLegalFooter' => true,
         ];
 
         // Renders view from views/orders/pdf.blade.php
@@ -442,6 +476,51 @@ class OrderController extends Controller
         return redirect()->route('orders.index')->with('success', 'Commande supprimée avec succès.');
     }
 
+    /**
+     * Resolve asset file across multiple Hostinger & local paths
+     */
+    private function resolveAssetPath(string $filename): ?string
+    {
+        $searchPaths = array_filter([
+            public_path($filename),
+            base_path('public/' . $filename),
+            base_path('public_html/' . $filename),
+            isset($_SERVER['DOCUMENT_ROOT']) ? rtrim($_SERVER['DOCUMENT_ROOT'], '/\\') . DIRECTORY_SEPARATOR . $filename : null,
+            base_path('../public_html/' . $filename),
+            base_path('../public/' . $filename),
+            resource_path('assets/' . $filename),
+            storage_path('app/' . $filename),
+        ]);
+
+        foreach ($searchPaths as $path) {
+            if ($path && file_exists($path) && is_readable($path)) {
+                return $path;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Load asset as base64 data URI with fallbacks
+     */
+    private function getBase64Asset(string $filename, array $fallbacks = []): ?string
+    {
+        $filesToTry = array_merge([$filename], $fallbacks);
+        foreach ($filesToTry as $file) {
+            $path = $this->resolveAssetPath($file);
+            if ($path) {
+                $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+                $mime = ($ext === 'png') ? 'image/png' : (($ext === 'svg') ? 'image/svg+xml' : 'image/jpeg');
+                $content = @file_get_contents($path);
+                if ($content !== false && strlen($content) > 0) {
+                    return 'data:' . $mime . ';base64,' . base64_encode($content);
+                }
+            }
+        }
+        return null;
+    }
+
     // Document Editor View
     public function editDocument(Order $order, $type)
     {
@@ -452,7 +531,11 @@ class OrderController extends Controller
 
         $order->load(['customer', 'agent', 'items']);
 
-        return view('orders.document_editor', compact('order', 'type'));
+        // Load company logo and cachet as base64 for reliable live preview
+        $logoBase64 = $this->getBase64Asset('logo.png');
+        $cachetBase64 = $this->getBase64Asset('cachet-removebg-preview.png', ['cachet.jpeg']);
+
+        return view('orders.document_editor', compact('order', 'type', 'logoBase64', 'cachetBase64'));
     }
 
     // Process Custom Document Generation & Download
@@ -463,12 +546,9 @@ class OrderController extends Controller
             abort(403);
         }
 
-        // Load company logo as base64
-        $logoPath = public_path('logo.png');
-        $logoBase64 = null;
-        if (file_exists($logoPath)) {
-            $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
-        }
+        // Load company logo and cachet as base64 with Hostinger multi-path resolution
+        $logoBase64 = $this->getBase64Asset('logo.png');
+        $cachetBase64 = $this->getBase64Asset('cachet-removebg-preview.png', ['cachet.jpeg']);
 
         // Arabic shaper
         require_once base_path('vendor/khaled.alshamaa/ar-php/src/Arabic.php');
@@ -560,11 +640,27 @@ class OrderController extends Controller
             'advances' => $advances,
             'remaining' => $remaining,
             'totalInWords' => $totalInWords,
-            'emitterName' => $request->input('emitter_name', 'Projecteur CRM Inc.'),
-            'emitterSubtitle' => $request->input('emitter_subtitle', 'Boutique physique et en ligne'),
+            'emitterName' => $request->input('emitter_name', 'Projecteur LOGO'),
+            'emitterAddress' => $request->input('emitter_address', 'Hay Nasr lot Oumnia num 27 magasin num 1 - Tanger.'),
             'emitterCountry' => $request->input('emitter_country', 'Maroc'),
-            'emitterPhone' => $request->input('emitter_phone', '+212 600-000000'),
-            'emitterEmail' => $request->input('emitter_email', 'contact@projecteurlogo.com'),
+            'emitterPhone' => $request->input('emitter_phone', '+212607056637'),
+            'emitterEmail' => $request->input('emitter_email', 'worklogo47@gmail.com'),
+            'emitterWebsite' => $request->input('emitter_website', 'www.projecteurlogo.com'),
+            'emitterIce' => $request->input('emitter_ice', '0040525690000032'),
+            'emitterIf' => $request->input('emitter_if', '73411678'),
+            'emitterTp' => $request->input('emitter_tp', '7210/2026/5669'),
+            'emitterRib' => $request->input('emitter_rib', '011 640 0000372100000583 28'),
+            'conditionDelivery' => $request->input('condition_delivery', "Livraison sous 3 à 5 jours ouvrés après validation du devis et le versement de l'acompte."),
+            'conditionManufacturing' => $request->input('condition_manufacturing', "La personnalisation et la fabrication de votre logo débutent immédiatement dès réception d’un acompte de 10% du montant total."),
+            'showConditions' => $request->input('show_conditions', '1') === '1',
+            'cachetBase64' => $cachetBase64,
+            'showCachet' => $request->input('show_cachet', '1') === '1',
+            'showLogo' => $request->input('show_logo', '1') === '1',
+            'showEmitter' => $request->input('show_emitter', '1') === '1',
+            'showCustomer' => $request->input('show_customer', '1') === '1',
+            'showAdvances' => $request->input('show_advances', '1') === '1',
+            'showWords' => $request->input('show_words', '1') === '1',
+            'showLegalFooter' => $request->input('show_legal_footer', '1') === '1',
         ];
 
         $pdf = Pdf::loadView('orders.pdf', $data);

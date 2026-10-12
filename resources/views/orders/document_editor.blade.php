@@ -29,6 +29,152 @@
         <!-- Left Column: Editable Controls -->
         <div style="display: flex; flex-direction: column; gap: 1.5rem;">
             
+            <!-- Hidden inputs for all section states -->
+            <input type="hidden" name="show_logo" id="show_logo" value="1">
+            <input type="hidden" name="show_emitter" id="show_emitter" value="1">
+            <input type="hidden" name="show_customer" id="show_customer" value="1">
+            <input type="hidden" name="show_advances" id="show_advances" value="1">
+            <input type="hidden" name="show_words" id="show_words" value="1">
+            <input type="hidden" name="show_conditions" id="show_conditions" value="1">
+            <input type="hidden" name="show_cachet" id="show_cachet" value="1">
+            <input type="hidden" name="show_legal_footer" id="show_legal_footer" value="1">
+
+            <!-- Master Section Visibility Control Panel -->
+            <div class="glass-card" style="margin: 0; background: linear-gradient(135deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.85)); border: 1px solid rgba(212, 175, 55, 0.35);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        <h3 class="card-title" style="margin: 0; display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-sliders" style="color: var(--primary);"></i> Contrôle des Sections du Document
+                        </h3>
+                        <p style="font-size: 0.78rem; color: var(--text-secondary); margin: 3px 0 0 0;">
+                            Activez ou masquez n'importe quelle section en 1 clic. L'aperçu et le PDF s'adaptent automatiquement.
+                        </p>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="setAllSections(true)" style="font-size: 0.75rem; padding: 4px 10px;">
+                            <i class="fa-solid fa-check-double"></i> Tout activer
+                        </button>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="setAllSections(false)" style="font-size: 0.75rem; padding: 4px 10px;">
+                            <i class="fa-solid fa-ban"></i> Tout masquer
+                        </button>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <!-- 1. Logo -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); border-radius: 8px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-image" style="color: var(--primary); width: 16px;"></i>
+                            <span style="font-size: 0.82rem; font-weight: 600; color: var(--text-primary);">Logo Entreprise</span>
+                        </div>
+                        <label style="position: relative; display: inline-block; width: 44px; height: 24px; cursor: pointer; flex-shrink: 0; margin: 0;" title="Activer / Masquer Logo">
+                            <input type="checkbox" data-section-toggle="logo" checked onchange="toggleDocSection('logo', this.checked)" style="opacity:0; width:0; height:0;">
+                            <span data-section-slider="logo" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: var(--primary, #d4af37); transition: 0.3s; border-radius: 24px;">
+                                <span style="position: absolute; content: ''; height: 18px; width: 18px; left: 3px; bottom: 3px; transform: translateX(20px); background: #ffffff; transition: 0.3s; border-radius: 50%; display: block;"></span>
+                            </span>
+                        </label>
+                    </div>
+
+                    <!-- 2. Émetteur -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); border-radius: 8px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-building" style="color: var(--info); width: 16px;"></i>
+                            <span style="font-size: 0.82rem; font-weight: 600; color: var(--text-primary);">Émetteur</span>
+                        </div>
+                        <label style="position: relative; display: inline-block; width: 44px; height: 24px; cursor: pointer; flex-shrink: 0; margin: 0;" title="Activer / Masquer Émetteur">
+                            <input type="checkbox" data-section-toggle="emitter" checked onchange="toggleDocSection('emitter', this.checked)" style="opacity:0; width:0; height:0;">
+                            <span data-section-slider="emitter" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: var(--primary, #d4af37); transition: 0.3s; border-radius: 24px;">
+                                <span style="position: absolute; content: ''; height: 18px; width: 18px; left: 3px; bottom: 3px; transform: translateX(20px); background: #ffffff; transition: 0.3s; border-radius: 50%; display: block;"></span>
+                            </span>
+                        </label>
+                    </div>
+
+                    <!-- 3. Client -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); border-radius: 8px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-user" style="color: var(--warning); width: 16px;"></i>
+                            <span style="font-size: 0.82rem; font-weight: 600; color: var(--text-primary);">Client</span>
+                        </div>
+                        <label style="position: relative; display: inline-block; width: 44px; height: 24px; cursor: pointer; flex-shrink: 0; margin: 0;" title="Activer / Masquer Client">
+                            <input type="checkbox" data-section-toggle="customer" checked onchange="toggleDocSection('customer', this.checked)" style="opacity:0; width:0; height:0;">
+                            <span data-section-slider="customer" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: var(--primary, #d4af37); transition: 0.3s; border-radius: 24px;">
+                                <span style="position: absolute; content: ''; height: 18px; width: 18px; left: 3px; bottom: 3px; transform: translateX(20px); background: #ffffff; transition: 0.3s; border-radius: 50%; display: block;"></span>
+                            </span>
+                        </label>
+                    </div>
+
+                    <!-- 4. Acomptes & Solde -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); border-radius: 8px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-money-bill-wave" style="color: var(--success); width: 16px;"></i>
+                            <span style="font-size: 0.82rem; font-weight: 600; color: var(--text-primary);">Acomptes & Solde</span>
+                        </div>
+                        <label style="position: relative; display: inline-block; width: 44px; height: 24px; cursor: pointer; flex-shrink: 0; margin: 0;" title="Activer / Masquer Acomptes & Solde">
+                            <input type="checkbox" data-section-toggle="advances" checked onchange="toggleDocSection('advances', this.checked)" style="opacity:0; width:0; height:0;">
+                            <span data-section-slider="advances" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: var(--primary, #d4af37); transition: 0.3s; border-radius: 24px;">
+                                <span style="position: absolute; content: ''; height: 18px; width: 18px; left: 3px; bottom: 3px; transform: translateX(20px); background: #ffffff; transition: 0.3s; border-radius: 50%; display: block;"></span>
+                            </span>
+                        </label>
+                    </div>
+
+                    <!-- 5. Somme en lettres -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); border-radius: 8px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-spell-check" style="color: #a855f7; width: 16px;"></i>
+                            <span style="font-size: 0.82rem; font-weight: 600; color: var(--text-primary);">Somme en Lettres</span>
+                        </div>
+                        <label style="position: relative; display: inline-block; width: 44px; height: 24px; cursor: pointer; flex-shrink: 0; margin: 0;" title="Activer / Masquer Somme en Lettres">
+                            <input type="checkbox" data-section-toggle="words" checked onchange="toggleDocSection('words', this.checked)" style="opacity:0; width:0; height:0;">
+                            <span data-section-slider="words" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: var(--primary, #d4af37); transition: 0.3s; border-radius: 24px;">
+                                <span style="position: absolute; content: ''; height: 18px; width: 18px; left: 3px; bottom: 3px; transform: translateX(20px); background: #ffffff; transition: 0.3s; border-radius: 50%; display: block;"></span>
+                            </span>
+                        </label>
+                    </div>
+
+                    <!-- 6. Conditions & Délais -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); border-radius: 8px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-truck-fast" style="color: var(--primary); width: 16px;"></i>
+                            <span style="font-size: 0.82rem; font-weight: 600; color: var(--text-primary);">Conditions & Délais</span>
+                        </div>
+                        <label style="position: relative; display: inline-block; width: 44px; height: 24px; cursor: pointer; flex-shrink: 0; margin: 0;" title="Activer / Masquer Conditions & Délais">
+                            <input type="checkbox" data-section-toggle="conditions" checked onchange="toggleDocSection('conditions', this.checked)" style="opacity:0; width:0; height:0;">
+                            <span data-section-slider="conditions" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: var(--primary, #d4af37); transition: 0.3s; border-radius: 24px;">
+                                <span style="position: absolute; content: ''; height: 18px; width: 18px; left: 3px; bottom: 3px; transform: translateX(20px); background: #ffffff; transition: 0.3s; border-radius: 50%; display: block;"></span>
+                            </span>
+                        </label>
+                    </div>
+
+                    <!-- 7. Cachet & Signature -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); border-radius: 8px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-stamp" style="color: #ec4899; width: 16px;"></i>
+                            <span style="font-size: 0.82rem; font-weight: 600; color: var(--text-primary);">Cachet & Signature</span>
+                        </div>
+                        <label style="position: relative; display: inline-block; width: 44px; height: 24px; cursor: pointer; flex-shrink: 0; margin: 0;" title="Activer / Masquer Cachet & Signature">
+                            <input type="checkbox" data-section-toggle="cachet" checked onchange="toggleDocSection('cachet', this.checked)" style="opacity:0; width:0; height:0;">
+                            <span data-section-slider="cachet" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: var(--primary, #d4af37); transition: 0.3s; border-radius: 24px;">
+                                <span style="position: absolute; content: ''; height: 18px; width: 18px; left: 3px; bottom: 3px; transform: translateX(20px); background: #ffffff; transition: 0.3s; border-radius: 50%; display: block;"></span>
+                            </span>
+                        </label>
+                    </div>
+
+                    <!-- 8. Pied de page Légal -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); border-radius: 8px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-scale-balanced" style="color: #38bdf8; width: 16px;"></i>
+                            <span style="font-size: 0.82rem; font-weight: 600; color: var(--text-primary);">Pied de page légal / RIB</span>
+                        </div>
+                        <label style="position: relative; display: inline-block; width: 44px; height: 24px; cursor: pointer; flex-shrink: 0; margin: 0;" title="Activer / Masquer Pied de page">
+                            <input type="checkbox" data-section-toggle="legal_footer" checked onchange="toggleDocSection('legal_footer', this.checked)" style="opacity:0; width:0; height:0;">
+                            <span data-section-slider="legal_footer" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: var(--primary, #d4af37); transition: 0.3s; border-radius: 24px;">
+                                <span style="position: absolute; content: ''; height: 18px; width: 18px; left: 3px; bottom: 3px; transform: translateX(20px); background: #ffffff; transition: 0.3s; border-radius: 50%; display: block;"></span>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
             <!-- Document Meta Card -->
             <div class="glass-card" style="margin: 0;">
                 <h3 class="card-title"><i class="fa-solid fa-file-invoice" style="color: var(--primary);"></i> En-tête du Document</h3>
@@ -45,37 +191,71 @@
             </div>
 
             <!-- Emitter Card -->
-            <div class="glass-card" style="margin: 0;">
-                <h3 class="card-title"><i class="fa-solid fa-building" style="color: var(--info);"></i> Informations Émetteur (Votre Entreprise)</h3>
+            <div class="glass-card" id="card_emitter" style="margin: 0; transition: opacity 0.3s;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h3 class="card-title" style="margin: 0;"><i class="fa-solid fa-building" style="color: var(--info);"></i> Informations Émetteur (Votre Entreprise)</h3>
+                    <label style="position: relative; display: inline-block; width: 48px; height: 26px; cursor: pointer; flex-shrink: 0; margin: 0;" title="Activer / Désactiver Émetteur">
+                        <input type="checkbox" data-section-toggle="emitter" checked onchange="toggleDocSection('emitter', this.checked)" style="opacity:0; width:0; height:0;">
+                        <span data-section-slider="emitter" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: var(--primary, #d4af37); transition: 0.3s; border-radius: 26px;">
+                            <span style="position: absolute; content: ''; height: 18px; width: 18px; left: 4px; bottom: 4px; transform: translateX(22px); background: #ffffff; transition: 0.3s; border-radius: 50%; display: block;"></span>
+                        </span>
+                    </label>
+                </div>
                 <div class="form-group" style="margin-bottom: 10px;">
                     <label class="form-label" for="emitter_name">Nom Entreprise</label>
-                    <input type="text" name="emitter_name" id="emitter_name" class="form-control" value="Projecteur CRM Inc." oninput="updateLivePreview()">
+                    <input type="text" name="emitter_name" id="emitter_name" class="form-control" value="Projecteur LOGO" oninput="updateLivePreview()">
+                </div>
+                <div class="form-group" style="margin-bottom: 10px;">
+                    <label class="form-label" for="emitter_address">Adresse</label>
+                    <input type="text" name="emitter_address" id="emitter_address" class="form-control" value="Hay Nasr lot Oumnia num 27 magasin num 1 - Tanger." oninput="updateLivePreview()">
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="form-label" for="emitter_subtitle">Activité / Sous-titre</label>
-                        <input type="text" name="emitter_subtitle" id="emitter_subtitle" class="form-control" value="Boutique physique et en ligne" oninput="updateLivePreview()">
+                        <label class="form-label" for="emitter_phone">GSM / Téléphone</label>
+                        <input type="text" name="emitter_phone" id="emitter_phone" class="form-control" value="+212607056637" oninput="updateLivePreview()">
                     </div>
                     <div class="form-group">
-                        <label class="form-label" for="emitter_country">Pays / Région</label>
-                        <input type="text" name="emitter_country" id="emitter_country" class="form-control" value="Maroc" oninput="updateLivePreview()">
+                        <label class="form-label" for="emitter_email">E-mail</label>
+                        <input type="email" name="emitter_email" id="emitter_email" class="form-control" value="worklogo47@gmail.com" oninput="updateLivePreview()">
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="form-label" for="emitter_phone">Téléphone</label>
-                        <input type="text" name="emitter_phone" id="emitter_phone" class="form-control" value="+212 600-000000" oninput="updateLivePreview()">
+                        <label class="form-label" for="emitter_website">Site web</label>
+                        <input type="text" name="emitter_website" id="emitter_website" class="form-control" value="www.projecteurlogo.com" oninput="updateLivePreview()">
                     </div>
                     <div class="form-group">
-                        <label class="form-label" for="emitter_email">Email</label>
-                        <input type="email" name="emitter_email" id="emitter_email" class="form-control" value="contact@projecteurlogo.com" oninput="updateLivePreview()">
+                        <label class="form-label" for="emitter_ice">ICE</label>
+                        <input type="text" name="emitter_ice" id="emitter_ice" class="form-control" value="0040525690000032" oninput="updateLivePreview()">
                     </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="emitter_if">IF</label>
+                        <input type="text" name="emitter_if" id="emitter_if" class="form-control" value="73411678" oninput="updateLivePreview()">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="emitter_tp">Taxe Professionnelle N°</label>
+                        <input type="text" name="emitter_tp" id="emitter_tp" class="form-control" value="7210/2026/5669" oninput="updateLivePreview()">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="emitter_rib">RIB BMCE</label>
+                    <input type="text" name="emitter_rib" id="emitter_rib" class="form-control" value="011 640 0000372100000583 28" oninput="updateLivePreview()">
                 </div>
             </div>
 
             <!-- Client Card -->
-            <div class="glass-card" style="margin: 0;">
-                <h3 class="card-title"><i class="fa-solid fa-user" style="color: var(--warning);"></i> Informations Client (Saisissable en Arabe/Français)</h3>
+            <div class="glass-card" id="card_customer" style="margin: 0; transition: opacity 0.3s;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h3 class="card-title" style="margin: 0;"><i class="fa-solid fa-user" style="color: var(--warning);"></i> Informations Client (Saisissable en Arabe/Français)</h3>
+                    <label style="position: relative; display: inline-block; width: 48px; height: 26px; cursor: pointer; flex-shrink: 0; margin: 0;" title="Activer / Désactiver Client">
+                        <input type="checkbox" data-section-toggle="customer" checked onchange="toggleDocSection('customer', this.checked)" style="opacity:0; width:0; height:0;">
+                        <span data-section-slider="customer" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: var(--primary, #d4af37); transition: 0.3s; border-radius: 26px;">
+                            <span style="position: absolute; content: ''; height: 18px; width: 18px; left: 4px; bottom: 4px; transform: translateX(22px); background: #ffffff; transition: 0.3s; border-radius: 50%; display: block;"></span>
+                        </span>
+                    </label>
+                </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label" for="customer_name">Nom complet du client</label>
@@ -194,12 +374,143 @@
                 <input type="hidden" id="tva_rate_hidden" name="tva_rate" value="0">
 
                 <div class="form-row" style="margin-top: 1rem;">
-                    <div class="form-group">
+                    <div class="form-group" style="margin-bottom: 0;">
                         <label class="form-label" for="advances">Acomptes Versés (DH)</label>
                         <input type="number" step="0.01" name="advances" id="advances" class="form-control" value="{{ $order->advance_cash + $order->advance_transfer }}" oninput="updateLivePreview()">
                     </div>
                 </div>
 
+                <div style="margin-top: 1rem; display: flex; flex-direction: column; gap: 8px;">
+                    <!-- Acomptes & Solde Toggle -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(15,23,42,0.4); border: 1px solid var(--border-color); border-radius: 8px;">
+                        <div>
+                            <div style="font-weight: 600; font-size: 0.85rem; color: var(--text-primary);"><i class="fa-solid fa-money-bill-wave" style="color: var(--success); margin-right: 6px;"></i> Lignes Acomptes & Reste à régler</div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary);">Afficher le détail des acomptes et du solde dans le récapitulatif</div>
+                        </div>
+                        <label style="position: relative; display: inline-block; width: 44px; height: 24px; cursor: pointer; flex-shrink: 0; margin: 0;" title="Activer / Masquer Acomptes & Reste">
+                            <input type="checkbox" data-section-toggle="advances" checked onchange="toggleDocSection('advances', this.checked)" style="opacity:0; width:0; height:0;">
+                            <span data-section-slider="advances" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: var(--primary, #d4af37); transition: 0.3s; border-radius: 24px;">
+                                <span style="position: absolute; content: ''; height: 18px; width: 18px; left: 3px; bottom: 3px; transform: translateX(20px); background: #ffffff; transition: 0.3s; border-radius: 50%; display: block;"></span>
+                            </span>
+                        </label>
+                    </div>
+
+                    <!-- Somme en lettres Toggle -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(15,23,42,0.4); border: 1px solid var(--border-color); border-radius: 8px;">
+                        <div>
+                            <div style="font-weight: 600; font-size: 0.85rem; color: var(--text-primary);"><i class="fa-solid fa-spell-check" style="color: #a855f7; margin-right: 6px;"></i> Bloc 'Somme en toutes lettres'</div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary);">Afficher le montant écrit en lettres sous le tableau</div>
+                        </div>
+                        <label style="position: relative; display: inline-block; width: 44px; height: 24px; cursor: pointer; flex-shrink: 0; margin: 0;" title="Activer / Masquer Somme en lettres">
+                            <input type="checkbox" data-section-toggle="words" checked onchange="toggleDocSection('words', this.checked)" style="opacity:0; width:0; height:0;">
+                            <span data-section-slider="words" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: var(--primary, #d4af37); transition: 0.3s; border-radius: 24px;">
+                                <span style="position: absolute; content: ''; height: 18px; width: 18px; left: 3px; bottom: 3px; transform: translateX(20px); background: #ffffff; transition: 0.3s; border-radius: 50%; display: block;"></span>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Conditions & Délais Card with Toggle Switch -->
+            <div class="glass-card" id="card_conditions" style="margin: 0; transition: opacity 0.3s;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h3 class="card-title" style="margin: 0;"><i class="fa-solid fa-truck-fast" style="color: var(--primary);"></i> Conditions & Délais</h3>
+                    
+                    <!-- Toggle Switch -->
+                    <label style="position: relative; display: inline-block; width: 48px; height: 26px; cursor: pointer; flex-shrink: 0; margin: 0;" title="Activer / Désactiver les conditions">
+                        <input type="checkbox" data-section-toggle="conditions" id="conditions_toggle" checked onchange="toggleDocSection('conditions', this.checked)" style="opacity:0; width:0; height:0;">
+                        <span data-section-slider="conditions" id="conditions_toggle_slider" style="
+                            position: absolute; cursor: pointer;
+                            top: 0; left: 0; right: 0; bottom: 0;
+                            background: var(--primary, #d4af37);
+                            transition: 0.3s; border-radius: 26px;
+                        ">
+                            <span style="
+                                position: absolute; content: '';
+                                height: 18px; width: 18px;
+                                left: 4px; bottom: 4px;
+                                transform: translateX(22px);
+                                background: #ffffff;
+                                transition: 0.3s; border-radius: 50%;
+                                display: block;
+                            "></span>
+                        </span>
+                    </label>
+                </div>
+
+                <div id="conditions_toggle_hint" style="font-size: 0.8rem; color: var(--success); margin-bottom: 12px; font-weight: 500;">
+                    <i class="fa-solid fa-circle-check"></i> Actif sur le document (cliquez sur l'interrupteur pour le retirer)
+                </div>
+
+                <div id="conditions_fields">
+                    <div class="form-group" style="margin-bottom: 10px;">
+                        <label class="form-label" for="condition_delivery">Délai de livraison</label>
+                        <textarea name="condition_delivery" id="condition_delivery" rows="2" class="form-control" oninput="updateLivePreview()">Livraison sous 3 à 5 jours ouvrés après validation du devis et le versement de l'acompte.</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="condition_manufacturing">Condition de fabrication</label>
+                        <textarea name="condition_manufacturing" id="condition_manufacturing" rows="2" class="form-control" oninput="updateLivePreview()">La personnalisation et la fabrication de votre logo débutent immédiatement dès réception d’un acompte de 10% du montant total.</textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cachet & Signature Card with Toggle Switch -->
+            <div class="glass-card" id="card_cachet" style="margin: 0; transition: opacity 0.3s;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h3 class="card-title" style="margin: 0;"><i class="fa-solid fa-stamp" style="color: var(--primary);"></i> Cachet & Signature</h3>
+                    
+                    <!-- Toggle Switch -->
+                    <label style="position: relative; display: inline-block; width: 48px; height: 26px; cursor: pointer; flex-shrink: 0; margin: 0;" title="Activer / Désactiver le cachet">
+                        <input type="checkbox" data-section-toggle="cachet" id="cachet_toggle" checked onchange="toggleDocSection('cachet', this.checked)" style="opacity:0; width:0; height:0;">
+                        <span data-section-slider="cachet" id="cachet_toggle_slider" style="
+                            position: absolute; cursor: pointer;
+                            top: 0; left: 0; right: 0; bottom: 0;
+                            background: var(--primary, #d4af37);
+                            transition: 0.3s; border-radius: 26px;
+                        ">
+                            <span style="
+                                position: absolute; content: '';
+                                height: 18px; width: 18px;
+                                left: 4px; bottom: 4px;
+                                transform: translateX(22px);
+                                background: #ffffff;
+                                transition: 0.3s; border-radius: 50%;
+                                display: block;
+                            "></span>
+                        </span>
+                    </label>
+                </div>
+
+                <div id="cachet_toggle_hint" style="font-size: 0.8rem; color: var(--success); margin-bottom: 10px; font-weight: 500;">
+                    <i class="fa-solid fa-circle-check"></i> Cachet officiel actif (cliquez pour retirer)
+                </div>
+
+                <div id="cachet_preview_thumbnail" style="display: flex; align-items: center; gap: 12px; background: rgba(0,0,0,0.15); padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color);">
+                    <img src="{{ $cachetBase64 ?? asset('cachet-removebg-preview.png') }}" style="max-height: 48px; width: auto; background: #fff; padding: 2px; border-radius: 4px;" alt="Aperçu Cachet">
+                    <div style="font-size: 0.78rem; color: var(--text-secondary);">
+                        Tampon officiel Projecteur LOGO avec ICE 0040525690000032 et signature.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pied de page Légal Card with Toggle Switch -->
+            <div class="glass-card" id="card_legal_footer" style="margin: 0; transition: opacity 0.3s;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h3 class="card-title" style="margin: 0;"><i class="fa-solid fa-scale-balanced" style="color: #38bdf8;"></i> Pied de Page Légal (ICE, RIB BMCE)</h3>
+                    <label style="position: relative; display: inline-block; width: 48px; height: 26px; cursor: pointer; flex-shrink: 0; margin: 0;" title="Activer / Désactiver le pied de page légal">
+                        <input type="checkbox" data-section-toggle="legal_footer" checked onchange="toggleDocSection('legal_footer', this.checked)" style="opacity:0; width:0; height:0;">
+                        <span data-section-slider="legal_footer" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: var(--primary, #d4af37); transition: 0.3s; border-radius: 26px;">
+                            <span style="position: absolute; content: ''; height: 18px; width: 18px; left: 4px; bottom: 4px; transform: translateX(22px); background: #ffffff; transition: 0.3s; border-radius: 50%; display: block;"></span>
+                        </span>
+                    </label>
+                </div>
+                <div id="legal_footer_toggle_hint" style="font-size: 0.8rem; color: var(--success); margin-bottom: 8px; font-weight: 500;">
+                    <i class="fa-solid fa-circle-check"></i> Tableau légal officiel actif en bas de page
+                </div>
+                <div style="font-size: 0.78rem; color: var(--text-secondary); line-height: 1.5; background: rgba(0,0,0,0.15); padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color);">
+                    Tableau 3 lignes : Adresse Tanger, E-mail, GSM, ICE 0040525690000032, IF 73411678, TP 7210/2026/5669 et RIB BMCE.
+                </div>
             </div>
 
         </div>
@@ -217,8 +528,10 @@
                     
                     <!-- Header -->
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                        <div>
-                            @if(file_exists(public_path('logo.png')))
+                        <div id="preview-header-logo">
+                            @if(!empty($logoBase64))
+                                <img src="{{ $logoBase64 }}" style="max-height: 50px; width: auto;" alt="Logo">
+                            @elseif(file_exists(public_path('logo.png')))
                                 <img src="{{ asset('logo.png') }}" style="max-height: 50px; width: auto;" alt="Logo">
                             @else
                                 <div style="font-size: 20px; font-weight: 800; color: #2563eb;">PROJECTEUR LOGO</div>
@@ -237,16 +550,16 @@
                     <div style="border-bottom: 2px solid #2563eb; margin-bottom: 20px;"></div>
 
                     <!-- Emitter & Client -->
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px;">
-                        <div>
+                    <div id="preview-info-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px;">
+                        <div id="preview-emitter-block">
                             <div style="font-size: 10px; font-weight: bold; color: #4b5563; text-transform: uppercase; margin-bottom: 5px;">ÉMETTEUR</div>
-                            <div id="preview-emitter-name" style="font-weight: bold; font-size: 13px; color: #111827;">Projecteur CRM Inc.</div>
-                            <div id="preview-emitter-subtitle" style="font-size: 12px; color: #4b5563;">Boutique physique et en ligne</div>
-                            <div id="preview-emitter-country" style="font-size: 12px; color: #4b5563;">Maroc</div>
-                            <div style="font-size: 12px; color: #4b5563;">Tél: <span id="preview-emitter-phone">+212 600-000000</span></div>
-                            <div style="font-size: 12px; color: #4b5563;">Email: <span id="preview-emitter-email">contact@projecteurlogo.com</span></div>
+                            <div id="preview-emitter-name" style="font-weight: bold; font-size: 13px; color: #111827;">Projecteur LOGO</div>
+                            <div id="preview-emitter-address" style="font-size: 12px; color: #4b5563;">Hay Nasr lot Oumnia num 27 magasin num 1 - Tanger.</div>
+                            <div style="font-size: 12px; color: #4b5563;">GSM: <span id="preview-emitter-phone">+212607056637</span></div>
+                            <div style="font-size: 12px; color: #4b5563;">Email: <span id="preview-emitter-email">worklogo47@gmail.com</span></div>
+                            <div style="font-size: 12px; color: #4b5563;">Site web: <span id="preview-emitter-website">www.projecteurlogo.com</span></div>
                         </div>
-                        <div>
+                        <div id="preview-client-block">
                             <div style="font-size: 10px; font-weight: bold; color: #4b5563; text-transform: uppercase; margin-bottom: 5px;">CLIENT</div>
                             <div id="preview-client-name" style="font-weight: bold; font-size: 13px; color: #111827;">{{ $order->customer->name ?? '' }}</div>
                             <div id="preview-client-company" style="font-size: 12px; color: #4b5563;">{{ $order->customer->company ? 'Société: ' . $order->customer->company : '' }}</div>
@@ -289,28 +602,57 @@
                                 <td style="padding: 4px 8px;" id="preview-total-label">Total Commande:</td>
                                 <td style="padding: 4px 8px; text-align: right;" id="preview-total-ttc">0,00 DH</td>
                             </tr>
-                            <tr style="color: #059669; font-weight: bold;">
+                            <tr id="preview-row-advances" style="color: #059669; font-weight: bold;">
                                 <td style="padding: 4px 8px;">Acomptes versés:</td>
                                 <td style="padding: 4px 8px; text-align: right;" id="preview-advances">0,00 DH</td>
                             </tr>
-                            <tr style="font-size: 14px; font-weight: bold; color: #2563eb; border-top: 2px solid #2563eb; border-bottom: 2px solid #2563eb;">
+                            <tr id="preview-row-remaining" style="font-size: 14px; font-weight: bold; color: #2563eb; border-top: 2px solid #2563eb; border-bottom: 2px solid #2563eb;">
                                 <td style="padding: 8px;">Reste à régler:</td>
                                 <td style="padding: 8px; text-align: right;" id="preview-remaining">0,00 DH</td>
                             </tr>
                         </table>
                     </div>
 
-                    <!-- Somme en lettre -->
-                    <div style="background-color: #f9fafb; border: 1px solid #f3f4f6; border-left: 4px solid #d1d5db; padding: 10px; border-radius: 4px; margin-bottom: 20px;">
-                        <div style="font-size: 9px; font-weight: bold; color: #374151; text-transform: uppercase;">LA SOMME EN LETTRE</div>
-                        <div id="preview-words" style="font-size: 11px; font-weight: bold; font-style: italic; color: #1f2937; margin-top: 2px;">CALCUL EN COURS...</div>
+                    <!-- Somme en lettre & Cachet Row -->
+                    <div id="preview-words-cachet-row" style="display: flex; gap: 15px; margin-bottom: 15px; align-items: stretch;">
+                        <div id="preview-words-container" style="flex: 1; background-color: #f9fafb; border: 1px solid #f3f4f6; border-left: 4px solid #d1d5db; padding: 10px; border-radius: 4px; display: flex; flex-direction: column; justify-content: center;">
+                            <div style="font-size: 9px; font-weight: bold; color: #374151; text-transform: uppercase;">LA SOMME EN LETTRE</div>
+                            <div id="preview-words" style="font-size: 11px; font-weight: bold; font-style: italic; color: #1f2937; margin-top: 2px;">CALCUL EN COURS...</div>
+                        </div>
+                        <div id="preview-cachet-container" style="width: 140px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                            <div style="font-size: 8.5px; font-weight: bold; color: #4b5563; text-transform: uppercase; margin-bottom: 3px;">Cachet et Signature</div>
+                            <img src="{{ $cachetBase64 ?? asset('cachet-removebg-preview.png') }}" style="max-height: 100px; max-width: 130px; object-fit: contain;" alt="Cachet et Signature">
+                        </div>
                     </div>
 
-                    <!-- Footer -->
-                    <div style="margin-top: 25px; text-align: center; font-size: 10px; color: #9ca3af; border-top: 1px solid #f3f4f6; padding-top: 10px;">
-                        <p style="margin: 0;">Merci pour votre confiance. Projecteur Logo — Boutique physique et en ligne.</p>
-                        <p style="font-size: 8px; margin: 2px 0 0 0; color: #d1d5db;">Document généré automatiquement via la plateforme CRM Projecteur.</p>
+                    <!-- Additional Conditions Box -->
+                    <div id="preview-conditions-box" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-left: 3px solid #2563eb; padding: 8px 12px; border-radius: 4px; margin-top: 15px; margin-bottom: 15px; font-size: 11px; color: #334155; line-height: 1.5;">
+                        <div style="font-size: 9px; font-weight: bold; color: #1e293b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">INFORMATIONS & CONDITIONS DE COMMANDE</div>
+                        <ul style="margin: 0; padding-left: 18px; font-size: 10.5px;">
+                            <li id="preview-condition-delivery">Livraison sous 3 à 5 jours ouvrés après validation du devis et le versement de l'acompte.</li>
+                            <li id="preview-condition-manufacturing">La personnalisation et la fabrication de votre logo débutent immédiatement dès réception d’un acompte de 10% du montant total.</li>
+                        </ul>
                     </div>
+
+                    <!-- Legal Footer Table (Identical to PDF) -->
+                    <table id="preview-legal-footer-table" style="width: 100%; border-collapse: collapse; margin-top: 25px; border: 1px solid #d1d5db; font-size: 10px; text-align: center; color: #111827;">
+                        <tr>
+                            <td style="padding: 5px 8px; border: 1px solid #d1d5db; line-height: 1.45;">
+                                <strong id="preview-foot-name">Projecteur LOGO</strong> - Adresse : <span id="preview-foot-address">Hay Nasr lot Oumnia num 27 magasin num 1 - Tanger.</span><br>
+                                E-mail : <span id="preview-foot-email">worklogo47@gmail.com</span> - Site web : <span id="preview-foot-website">www.projecteurlogo.com</span> - GSM: <span id="preview-foot-phone">+212607056637</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 5px 8px; border: 1px solid #d1d5db; line-height: 1.45;">
+                                ICE : <span id="preview-foot-ice">0040525690000032</span> - IF : <span id="preview-foot-if">73411678</span> - Taxe Professionnelle N° : <span id="preview-foot-tp">7210/2026/5669</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 5px 8px; border: 1px solid #d1d5db; line-height: 1.45;">
+                                RIB BMCE : <span id="preview-foot-rib">011 640 0000372100000583 28</span>
+                            </td>
+                        </tr>
+                    </table>
 
                 </div>
             </div>
@@ -330,6 +672,156 @@
     const SLIDER_OFF_BG = '#374151';
     const KNOB_ON_COLOR = '#ffffff';
     const KNOB_OFF_COLOR = '#9ca3af';
+
+    // Master Section States
+    const sectionStates = {
+        logo: true,
+        emitter: true,
+        customer: true,
+        advances: true,
+        words: true,
+        conditions: true,
+        cachet: true,
+        legal_footer: true
+    };
+
+    function toggleDocSection(sectionKey, enabled) {
+        if (enabled === undefined) {
+            sectionStates[sectionKey] = !sectionStates[sectionKey];
+        } else {
+            sectionStates[sectionKey] = !!enabled;
+        }
+        const state = sectionStates[sectionKey];
+
+        // 1. Update hidden form input
+        const inputEl = document.getElementById('show_' + sectionKey);
+        if (inputEl) inputEl.value = state ? '1' : '0';
+
+        // 2. Update any checkbox with data-section-toggle
+        document.querySelectorAll(`[data-section-toggle="${sectionKey}"]`).forEach(cb => {
+            cb.checked = state;
+        });
+
+        // 3. Update slider visuals
+        document.querySelectorAll(`[data-section-slider="${sectionKey}"]`).forEach(slider => {
+            slider.style.background = state ? SLIDER_ON_BG : SLIDER_OFF_BG;
+            const knob = slider.querySelector('span');
+            if (knob) {
+                const shift = slider.style.width === '44px' || slider.offsetWidth <= 44 ? '20px' : '22px';
+                knob.style.transform  = state ? `translateX(${shift})` : 'translateX(0)';
+                knob.style.background = state ? KNOB_ON_COLOR : KNOB_OFF_COLOR;
+            }
+        });
+
+        // 4. Update specific hint elements if present
+        const hintEl = document.getElementById(sectionKey + '_toggle_hint');
+        if (hintEl) {
+            hintEl.style.color = state ? 'var(--success)' : 'var(--text-secondary)';
+            if (sectionKey === 'cachet') {
+                hintEl.innerHTML = state 
+                    ? '<i class="fa-solid fa-circle-check"></i> Cachet officiel actif (cliquez pour retirer)' 
+                    : '<i class="fa-solid fa-eye-slash"></i> Cachet retiré (cliquez pour réactiver)';
+            } else if (sectionKey === 'conditions') {
+                hintEl.innerHTML = state 
+                    ? '<i class="fa-solid fa-circle-check"></i> Actif sur le document (cliquez sur l\'interrupteur pour le retirer)' 
+                    : '<i class="fa-solid fa-eye-slash"></i> Retiré du document (cliquez pour réactiver)';
+            } else if (sectionKey === 'legal_footer') {
+                hintEl.innerHTML = state 
+                    ? '<i class="fa-solid fa-circle-check"></i> Tableau légal officiel actif en bas de page' 
+                    : '<i class="fa-solid fa-eye-slash"></i> Tableau légal masqué du document';
+            }
+        }
+
+        // 5. Conditions fields display
+        if (sectionKey === 'conditions') {
+            const fieldsEl = document.getElementById('conditions_fields');
+            if (fieldsEl) fieldsEl.style.display = state ? 'block' : 'none';
+        }
+
+        // 6. Cachet thumbnail opacity
+        if (sectionKey === 'cachet') {
+            const thumbEl = document.getElementById('cachet_preview_thumbnail');
+            if (thumbEl) thumbEl.style.opacity = state ? '1' : '0.4';
+        }
+
+        // 7. Dim / highlight associated card
+        const cardEl = document.getElementById('card_' + sectionKey);
+        if (cardEl) {
+            cardEl.style.opacity = state ? '1' : '0.45';
+        }
+
+        // 8. Apply visibility to Live Preview
+        applySectionVisibility();
+    }
+
+    function setAllSections(enabled) {
+        Object.keys(sectionStates).forEach(key => {
+            toggleDocSection(key, enabled);
+        });
+    }
+
+    // Backwards compatibility wrappers
+    function toggleCachet(enabled) {
+        toggleDocSection('cachet', enabled);
+    }
+    function toggleConditions(enabled) {
+        toggleDocSection('conditions', enabled);
+    }
+
+    function applySectionVisibility() {
+        // Logo
+        const logoEl = document.getElementById('preview-header-logo');
+        if (logoEl) logoEl.style.display = sectionStates.logo ? 'block' : 'none';
+
+        // Emitter & Client
+        const infoRow   = document.getElementById('preview-info-row');
+        const emitterEl = document.getElementById('preview-emitter-block');
+        const clientEl  = document.getElementById('preview-client-block');
+        if (emitterEl) emitterEl.style.display = sectionStates.emitter ? 'block' : 'none';
+        if (clientEl)  clientEl.style.display  = sectionStates.customer ? 'block' : 'none';
+
+        if (infoRow) {
+            if (!sectionStates.emitter && !sectionStates.customer) {
+                infoRow.style.display = 'none';
+            } else {
+                infoRow.style.display = 'grid';
+                if (sectionStates.emitter && sectionStates.customer) {
+                    infoRow.style.gridTemplateColumns = '1fr 1fr';
+                } else {
+                    infoRow.style.gridTemplateColumns = '1fr';
+                }
+            }
+        }
+
+        // Advances & Remaining
+        const rowAdv = document.getElementById('preview-row-advances');
+        const rowRem = document.getElementById('preview-row-remaining');
+        if (rowAdv) rowAdv.style.display = sectionStates.advances ? 'table-row' : 'none';
+        if (rowRem) rowRem.style.display = sectionStates.advances ? 'table-row' : 'none';
+
+        // Words & Cachet
+        const wordsRow  = document.getElementById('preview-words-cachet-row');
+        const wordsEl   = document.getElementById('preview-words-container');
+        const cachetEl  = document.getElementById('preview-cachet-container');
+        if (wordsEl)  wordsEl.style.display  = sectionStates.words ? 'flex' : 'none';
+        if (cachetEl) cachetEl.style.display = sectionStates.cachet ? 'flex' : 'none';
+
+        if (wordsRow) {
+            if (!sectionStates.words && !sectionStates.cachet) {
+                wordsRow.style.display = 'none';
+            } else {
+                wordsRow.style.display = 'flex';
+            }
+        }
+
+        // Conditions
+        const condBox = document.getElementById('preview-conditions-box');
+        if (condBox) condBox.style.display = sectionStates.conditions ? 'block' : 'none';
+
+        // Legal Footer Table
+        const footTable = document.getElementById('preview-legal-footer-table');
+        if (footTable) footTable.style.display = sectionStates.legal_footer ? 'table' : 'none';
+    }
 
     function toggleTva(enabled) {
         tvaEnabled = enabled;
@@ -410,11 +902,31 @@
         document.getElementById('preview-doc-date').textContent = `Date: ${docDate}`;
 
         // Emitter
-        document.getElementById('preview-emitter-name').textContent = document.getElementById('emitter_name').value || 'Projecteur CRM Inc.';
-        document.getElementById('preview-emitter-subtitle').textContent = document.getElementById('emitter_subtitle').value || '';
-        document.getElementById('preview-emitter-country').textContent = document.getElementById('emitter_country').value || '';
-        document.getElementById('preview-emitter-phone').textContent = document.getElementById('emitter_phone').value || '';
-        document.getElementById('preview-emitter-email').textContent = document.getElementById('emitter_email').value || '';
+        const eName = document.getElementById('emitter_name').value || 'Projecteur LOGO';
+        const eAddr = document.getElementById('emitter_address').value || 'Hay Nasr lot Oumnia num 27 magasin num 1 - Tanger.';
+        const ePhone = document.getElementById('emitter_phone').value || '+212607056637';
+        const eEmail = document.getElementById('emitter_email').value || 'worklogo47@gmail.com';
+        const eWeb = document.getElementById('emitter_website').value || 'www.projecteurlogo.com';
+        const eIce = document.getElementById('emitter_ice').value || '0040525690000032';
+        const eIf = document.getElementById('emitter_if').value || '73411678';
+        const eTp = document.getElementById('emitter_tp').value || '7210/2026/5669';
+        const eRib = document.getElementById('emitter_rib').value || '011 640 0000372100000583 28';
+
+        document.getElementById('preview-emitter-name').textContent = eName;
+        document.getElementById('preview-emitter-address').textContent = eAddr;
+        document.getElementById('preview-emitter-phone').textContent = ePhone;
+        document.getElementById('preview-emitter-email').textContent = eEmail;
+        document.getElementById('preview-emitter-website').textContent = eWeb;
+
+        document.getElementById('preview-foot-name').textContent = eName;
+        document.getElementById('preview-foot-address').textContent = eAddr;
+        document.getElementById('preview-foot-email').textContent = eEmail;
+        document.getElementById('preview-foot-website').textContent = eWeb;
+        document.getElementById('preview-foot-phone').textContent = ePhone;
+        document.getElementById('preview-foot-ice').textContent = eIce;
+        document.getElementById('preview-foot-if').textContent = eIf;
+        document.getElementById('preview-foot-tp').textContent = eTp;
+        document.getElementById('preview-foot-rib').textContent = eRib;
 
         // Client
         document.getElementById('preview-client-name').textContent = document.getElementById('customer_name').value || '';
@@ -483,12 +995,25 @@
 
         const wordsLabel = tvaEnabled ? 'TOTAL TTC' : 'TOTAL';
         document.getElementById('preview-words').textContent = `${wordsLabel}: ${totalTtc.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DH`;
+
+        const condDeliveryInput = document.getElementById('condition_delivery');
+        const condManufacturingInput = document.getElementById('condition_manufacturing');
+        if (condDeliveryInput && document.getElementById('preview-condition-delivery')) {
+            document.getElementById('preview-condition-delivery').textContent = condDeliveryInput.value;
+        }
+        if (condManufacturingInput && document.getElementById('preview-condition-manufacturing')) {
+            document.getElementById('preview-condition-manufacturing').textContent = condManufacturingInput.value;
+        }
+
+        // Re-apply modular sections visibility
+        applySectionVisibility();
     }
 
     document.addEventListener('DOMContentLoaded', () => {
         // Ensure hidden field active & TVA rate input disabled on load
         document.getElementById('tva_rate').disabled        = true;
         document.getElementById('tva_rate_hidden').disabled = false;
+        applySectionVisibility();
         updateLivePreview();
     });
 </script>

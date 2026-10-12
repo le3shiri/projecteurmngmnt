@@ -6,9 +6,12 @@
 <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle, #1e293b 0%, #0f172a 100%); width: 100%;">
     <div class="glass-card login-card" style="margin: 0;">
         <div style="text-align: center; margin-bottom: 2rem;">
-            <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 2.5rem; color: var(--primary); margin-bottom: 1rem;"></i>
-            <h2 style="font-size: 1.5rem; font-weight: 700; color: #fff;">ProjetEUR CRM</h2>
-            <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 5px;">Portail d'accès collaboratif</p>
+            <img src="{{ asset('logo.png') }}" alt="Projecteur LOGO" style="max-height: 55px; width: auto; object-fit: contain; margin-bottom: 0.75rem;" onerror="this.style.display='none'; document.getElementById('login-logo-fallback').style.display='block';">
+            <div id="login-logo-fallback" style="display: none;">
+                <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 2.5rem; color: var(--primary); margin-bottom: 1rem;"></i>
+            </div>
+            <h2 style="font-size: 1.5rem; font-weight: 700; color: #fff;">Projecteur LOGO</h2>
+            <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 5px;">Portail d'accès CRM & Facturation</p>
         </div>
 
         @if ($errors->any())

@@ -45,12 +45,15 @@
         </p>
     </div>
 
-    <form action="{{ route('commissions.pay_all', $user->id) }}" method="POST" onsubmit="return confirm('Confirmez-vous le paiement intégral des commissions en attente ({{ number_format($totalPending, 2, ',', ' ') }} DH) à {{ $user->name }} ?')">
-        @csrf
-        <button type="submit" class="btn btn-success" style="font-size: 1rem; padding: 0.75rem 1.5rem;">
-            <i class="fa-solid fa-hand-holding-dollar"></i> Verser tout le solde ({{ number_format($totalPending, 2, ',', ' ') }} DH)
-        </button>
-    </form>
+    <button type="button" 
+            class="btn btn-success btn-open-pay-modal" 
+            style="font-size: 1rem; padding: 0.75rem 1.5rem;"
+            data-agent-id="{{ $user->id }}"
+            data-agent-name="{{ addslashes($user->name) }}"
+            data-total-pending="{{ $totalPending }}"
+            data-commissions='@json($pendingCommissions ?? [])'>
+        <i class="fa-solid fa-hand-holding-dollar"></i> Payer Solde par Commande ({{ number_format($totalPending, 2, ',', ' ') }} DH)
+    </button>
 </div>
 @endif
 
@@ -182,4 +185,6 @@
         {{ $commissions->links() }}
     </div>
 </div>
+
+@include('commissions.partials.pay_modal')
 @endsection
