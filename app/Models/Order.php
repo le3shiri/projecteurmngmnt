@@ -22,6 +22,10 @@ class Order extends Model
         'shipping_ticket_path',
         'notes',
         'delivery_date',
+        'source',
+        'discount_rate',
+        'discount_amount',
+        'customer_discount_link_id',
     ];
 
     protected $casts = [
@@ -30,7 +34,24 @@ class Order extends Model
         'advance_transfer' => 'decimal:2',
         'remaining' => 'decimal:2',
         'delivery_date' => 'date',
+        'discount_rate' => 'decimal:2',
+        'discount_amount' => 'decimal:2',
     ];
+
+    public function discountLink()
+    {
+        return $this->belongsTo(CustomerDiscountLink::class, 'customer_discount_link_id');
+    }
+
+    public function isCustomerVip(): bool
+    {
+        return $this->source === 'customer_vip';
+    }
+
+    public function isPendingVip(): bool
+    {
+        return $this->source === 'customer_vip' && $this->status === 'pending';
+    }
 
     public function customer()
     {

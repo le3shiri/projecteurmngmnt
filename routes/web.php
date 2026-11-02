@@ -15,6 +15,8 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CompanyDocumentController;
 use App\Http\Controllers\CommissionController;
 use App\Http\Controllers\RealisationController;
+use App\Http\Controllers\CustomerDiscountLinkController;
+use App\Http\Controllers\CustomerCatalogController;
 
 // Auth Routes
 Route::get('login', [AuthController::class, 'showLogin'])->name('login');
@@ -111,6 +113,11 @@ Route::get('/fix-storage', function () {
     }
 });
 
+// Public Customer VIP Catalogue Routes
+Route::get('catalogue-exclusif/{token}', [CustomerCatalogController::class, 'show'])->name('catalog.special');
+Route::post('catalogue-exclusif/{token}/order', [CustomerCatalogController::class, 'placeOrder'])->name('catalog.special.order');
+Route::get('catalogue-exclusif/{token}/confirmation', [CustomerCatalogController::class, 'confirmation'])->name('catalog.special.confirmation');
+
 // Authenticated Routes
 Route::middleware(['role'])->group(function () {
 
@@ -121,6 +128,7 @@ Route::middleware(['role'])->group(function () {
     Route::middleware(['permission:manage_customers'])->group(function () {
         Route::get('customers/create', [CustomerController::class, 'create'])->name('customers.create');
         Route::post('customers', [CustomerController::class, 'store'])->name('customers.store');
+        Route::post('customers/{customer}/vip-link', [CustomerDiscountLinkController::class, 'generate'])->name('customers.vip_link.generate');
         Route::get('customers/{customer}/edit', [CustomerController::class, 'edit'])->name('customers.edit');
         Route::put('customers/{customer}', [CustomerController::class, 'update'])->name('customers.update');
         Route::delete('customers/{customer}', [CustomerController::class, 'destroy'])->name('customers.destroy');

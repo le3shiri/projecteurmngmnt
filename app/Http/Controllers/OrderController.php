@@ -25,6 +25,13 @@ class OrderController extends Controller
         $endDate = $request->input('end_date');
         $agentId = $request->input('agent_id');
 
+        $perPage = (int) $request->input('per_page', 15);
+        if ($perPage < 1) {
+            $perPage = 15;
+        } elseif ($perPage > 200) {
+            $perPage = 200;
+        }
+
         if ($user->isSupplier()) {
             return redirect()->route('supplier.index');
         }
@@ -63,7 +70,7 @@ class OrderController extends Controller
             $query->whereDate('created_at', '<=', $endDate);
         }
 
-        $orders = $query->latest()->paginate(15)->withQueryString();
+        $orders = $query->latest()->paginate($perPage)->withQueryString();
 
         $agents = [];
         if (!$user->isAgent()) {
@@ -74,7 +81,7 @@ class OrderController extends Controller
                 ->get();
         }
 
-        return view('orders.index', compact('orders', 'status', 'search', 'startDate', 'endDate', 'agentId', 'agents'));
+        return view('orders.index', compact('orders', 'status', 'search', 'startDate', 'endDate', 'agentId', 'agents', 'perPage'));
     }
 
     public function create()

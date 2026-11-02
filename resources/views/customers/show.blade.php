@@ -59,6 +59,80 @@
                 </div>
             @endif
         </div>
+
+        @if(auth()->user()->isAdmin())
+            <div style="border-top: 1px solid var(--border-color); padding-top: 15px; margin-top: 15px;">
+                <h4 style="color: var(--primary); font-size: 0.95rem; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;">
+                    <span><i class="fa-solid fa-crown"></i> Espace Privilège Client</span>
+                    <span class="badge" style="background: rgba(212, 175, 55, 0.15); color: var(--primary); font-size: 0.7rem;">Admin</span>
+                </h4>
+
+                @if($customer->hasDeliveredOrder())
+                    @php $vipLink = $customer->latestDiscountLink; @endphp
+
+                    @if($vipLink)
+                        <div style="background: rgba(0, 0, 0, 0.25); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; margin-bottom: 10px;">
+                            <div style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 4px;">Remise active actuelle :</div>
+                            <div style="font-size: 1.05rem; font-weight: 700; color: #10b981; margin-bottom: 6px;">
+                                -{{ (int)$vipLink->getCurrentDiscountRate() }}% de réduction
+                                @if($vipLink->isInitialPeriodActive())
+                                    <span style="font-size: 0.72rem; color: var(--warning); font-weight: 500;">(Offre 11% : encore {{ $vipLink->getRemainingDays() }} j)</span>
+                                @else
+                                    <span style="font-size: 0.72rem; color: var(--text-secondary); font-weight: 500;">(Permanente à vie)</span>
+                                @endif
+                            </div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 6px;">
+                                Lien catalogue réservé à ce client :
+                            </div>
+                            <div style="display: flex; gap: 6px; align-items: center;">
+                                <input type="text" id="vip-link-input" class="form-control" value="{{ $vipLink->getUrl() }}" readonly style="font-size: 0.72rem; padding: 5px 8px; font-family: monospace;">
+                                <button type="button" class="btn btn-secondary btn-sm" onclick="copyVipLink()" title="Copier le lien">
+                                    <i class="fa-regular fa-copy"></i>
+                                </button>
+                                <a href="{{ $vipLink->getUrl() }}" target="_blank" class="btn btn-secondary btn-sm" title="Ouvrir le catalogue client">
+                                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                </a>
+                            </div>
+                            <div id="copy-feedback" style="display: none; font-size: 0.72rem; color: #10b981; margin-top: 4px;">
+                                <i class="fa-solid fa-check"></i> Lien copié dans le presse-papier !
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                            @php
+                                $waText = rawurlencode("Bonjour " . $customer->name . ",\n\nSuite à la livraison de votre projecteur, nous avons le plaisir de vous offrir un accès exclusif à notre catalogue avec -11% de réduction sur toutes vos commandes pendant 10 jours, puis -5% permanent à vie :\n" . $vipLink->getUrl());
+                            @endphp
+                            <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $customer->phone ?? '') }}?text={{ $waText }}" target="_blank" class="btn btn-secondary btn-sm" style="flex: 1; text-align: center; color: #25d366; font-size: 0.78rem;">
+                                <i class="fa-brands fa-whatsapp"></i> Envoyer WhatsApp
+                            </a>
+
+                            <form action="{{ route('customers.vip_link.generate', $customer->id) }}" method="POST" style="display: inline;">
+                                @csrf
+                                <input type="hidden" name="regenerate" value="1">
+                                <button type="submit" class="btn btn-secondary btn-sm" style="font-size: 0.75rem; color: var(--text-secondary);" title="Régénérer un nouveau lien">
+                                    <i class="fa-solid fa-rotate-right"></i>
+                                </button>
+                            </form>
+                        </div>
+                    @else
+                        <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 10px;">
+                            Ce client a reçu un projecteur. Vous pouvez générer son lien catalogue exclusif avec <strong>-11% pendant 10 jours</strong> puis <strong>-5% à vie</strong>.
+                        </p>
+                        <form action="{{ route('customers.vip_link.generate', $customer->id) }}" method="POST">
+                            @csrf
+                            <button type="submit" class="btn btn-primary btn-sm" style="width: 100%;">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> Générer le lien exclusif (-11% / -5%)
+                            </button>
+                        </form>
+                    @endif
+                @else
+                    <div style="font-size: 0.8rem; color: var(--text-secondary); background: rgba(0,0,0,0.2); padding: 8px 10px; border-radius: 6px; border: 1px dashed var(--border-color);">
+                        <i class="fa-solid fa-circle-info" style="color: var(--warning); margin-right: 4px;"></i>
+                        Le lien fidélité sera débloqué dès qu'une commande sera au statut <strong>Livrée</strong> pour ce client.
+                    </div>
+                @endif
+            </div>
+        @endif
     </div>
 
     <!-- Purchase History -->
@@ -112,4 +186,22 @@
         </div>
     </div>
 </div>
+@endsection
+
+@section('scripts')
+<script>
+function copyVipLink() {
+    const input = document.getElementById('vip-link-input');
+    if (!input) return;
+    input.select();
+    input.setSelectionRange(0, 99999);
+    navigator.clipboard.writeText(input.value).then(() => {
+        const feedback = document.getElementById('copy-feedback');
+        if (feedback) {
+            feedback.style.display = 'block';
+            setTimeout(() => { feedback.style.display = 'none'; }, 3000);
+        }
+    });
+}
+</script>
 @endsection

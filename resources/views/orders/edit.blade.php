@@ -175,7 +175,7 @@
             'code' => $p->code,
             'price' => $p->price,
             'stock' => $p->stock,
-            'commission' => $p->current_commission !== undefined ? $p->current_commission : ($p->commission_agent || 0)
+            'commission' => isset($p->current_commission) ? (float)$p->current_commission : (float)($p->commission_agent ?? 0)
         ];
     })) !!};
 

@@ -12,6 +12,14 @@ class CustomerController extends Controller
         $search = $request->input('search');
         $startDate = $request->input('start_date');
         $endDate = $request->input('end_date');
+        $sort = $request->input('sort', 'latest');
+
+        $perPage = (int) $request->input('per_page', 15);
+        if ($perPage < 1) {
+            $perPage = 15;
+        } elseif ($perPage > 200) {
+            $perPage = 200;
+        }
 
         $query = Customer::query();
 
@@ -32,9 +40,26 @@ class CustomerController extends Controller
             $query->whereDate('created_at', '<=', $endDate);
         }
 
-        $customers = $query->orderBy('name')->paginate(15);
+        switch ($sort) {
+            case 'oldest':
+                $query->orderBy('created_at', 'asc');
+                break;
+            case 'name_asc':
+                $query->orderBy('name', 'asc');
+                break;
+            case 'name_desc':
+                $query->orderBy('name', 'desc');
+                break;
+            case 'latest':
+            default:
+                $sort = 'latest';
+                $query->orderBy('created_at', 'desc');
+                break;
+        }
 
-        return view('customers.index', compact('customers', 'search', 'startDate', 'endDate'));
+        $customers = $query->paginate($perPage)->withQueryString();
+
+        return view('customers.index', compact('customers', 'search', 'startDate', 'endDate', 'sort', 'perPage'));
     }
 
     public function create()

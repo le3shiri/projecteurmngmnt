@@ -29,6 +29,42 @@
     </div>
 </div>
 
+@if($order->source === 'customer_vip')
+    <div class="glass-card" style="margin-bottom: 1.5rem; background: linear-gradient(90deg, rgba(212, 175, 55, 0.16) 0%, rgba(30, 41, 59, 0.8) 100%); border: 1px solid var(--primary); display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 44px; height: 44px; border-radius: 50%; background: var(--primary); color: #000; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+                <i class="fa-solid fa-crown"></i>
+            </div>
+            <div>
+                <div style="font-weight: 700; font-size: 1.05rem; color: #fff;">
+                    Commande Client Privilège — Remise -{{ (int)$order->discount_rate }}%
+                </div>
+                <div style="font-size: 0.85rem; color: var(--text-secondary);">
+                    Passée directement par le client via son catalogue exclusif fidélité. Remise totale accordée : <strong>{{ number_format($order->discount_amount, 2, ',', ' ') }} DH</strong>.
+                    @if($order->status === 'pending')
+                        <span style="color: var(--warning); font-weight: 600; display: block; margin-top: 2px;">
+                            <i class="fa-solid fa-triangle-exclamation"></i> En attente de confirmation par l'administrateur
+                        </span>
+                    @else
+                        <span style="color: var(--success); font-weight: 600; display: block; margin-top: 2px;">
+                            <i class="fa-solid fa-circle-check"></i> Statut actuel : {{ ucfirst($order->status) }}
+                        </span>
+                    @endif
+                </div>
+            </div>
+        </div>
+        @if($order->status === 'pending' && (auth()->user()->isAdmin() || auth()->user()->hasPermission('update_order_status')))
+            <form action="{{ route('orders.updateStatus', $order->id) }}" method="POST" style="margin: 0;">
+                @csrf
+                <input type="hidden" name="status" value="confirmed">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-circle-check"></i> Confirmer la commande
+                </button>
+            </form>
+        @endif
+    </div>
+@endif
+
 <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem;">
     
     <!-- Left Column: Details & Documents -->
@@ -84,6 +120,55 @@
                 @endif
             </div>
         </div>
+
+        @if($order->status === 'delivered' && auth()->user()->isAdmin())
+            @php $vipLink = $order->customer->latestDiscountLink; @endphp
+            <div class="glass-card" style="margin: 0; border: 1px solid rgba(212, 175, 55, 0.4);">
+                <h3 class="card-title" style="color: var(--primary); font-size: 0.95rem; display: flex; align-items: center; justify-content: space-between;">
+                    <span><i class="fa-solid fa-crown"></i> Lien Fidélité Client (-11% / -5%)</span>
+                    <span class="badge" style="background: rgba(212, 175, 55, 0.15); color: var(--primary); font-size: 0.7rem;">Admin</span>
+                </h3>
+
+                @if($vipLink)
+                    <div style="background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; margin-bottom: 10px;">
+                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 4px;">Remise active actuelle :</div>
+                        <div style="font-size: 1.05rem; font-weight: 700; color: #10b981; margin-bottom: 6px;">
+                            -{{ (int)$vipLink->getCurrentDiscountRate() }}% de réduction
+                            @if($vipLink->isInitialPeriodActive())
+                                <span style="font-size: 0.72rem; color: var(--warning); font-weight: 500;">(Offre 11% : encore {{ $vipLink->getRemainingDays() }} j)</span>
+                            @else
+                                <span style="font-size: 0.72rem; color: var(--text-secondary); font-weight: 500;">(Permanente à vie)</span>
+                            @endif
+                        </div>
+                        <div style="display: flex; gap: 6px; align-items: center;">
+                            <input type="text" id="order-vip-link" class="form-control" value="{{ $vipLink->getUrl() }}" readonly style="font-size: 0.72rem; padding: 5px 8px; font-family: monospace;">
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="navigator.clipboard.writeText(document.getElementById('order-vip-link').value); alert('Lien copié !');" title="Copier le lien">
+                                <i class="fa-regular fa-copy"></i>
+                            </button>
+                            <a href="{{ $vipLink->getUrl() }}" target="_blank" class="btn btn-secondary btn-sm" title="Ouvrir le catalogue client">
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                            </a>
+                        </div>
+                    </div>
+                    @php
+                        $waText = rawurlencode("Bonjour " . $order->customer->name . ",\n\nSuite à la livraison de votre projecteur, voici votre accès exclusif avec -11% pendant 10 jours puis -5% permanent à vie :\n" . $vipLink->getUrl());
+                    @endphp
+                    <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $order->customer->phone ?? '') }}?text={{ $waText }}" target="_blank" class="btn btn-secondary btn-sm" style="width: 100%; text-align: center; color: #25d366; font-size: 0.8rem;">
+                        <i class="fa-brands fa-whatsapp"></i> Envoyer le lien par WhatsApp
+                    </a>
+                @else
+                    <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 10px;">
+                        Cette commande étant <strong>Livrée</strong>, vous pouvez générer le lien privilège exclusif (-11% pendant 10j puis -5% à vie) pour ce client.
+                    </p>
+                    <form action="{{ route('customers.vip_link.generate', $order->customer_id) }}" method="POST">
+                        @csrf
+                        <button type="submit" class="btn btn-primary btn-sm" style="width: 100%;">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> Générer le lien client (-11% / -5%)
+                        </button>
+                    </form>
+                @endif
+            </div>
+        @endif
 
         <!-- Logo Attached Preview -->
         <div class="glass-card" style="margin: 0;">
