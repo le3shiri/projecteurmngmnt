@@ -46,9 +46,15 @@
             </div>
         </div>
 
-        <div class="form-group">
-            <label class="form-label" for="company">Entreprise / Société (Facultatif)</label>
-            <input type="text" name="company" id="company" class="form-control" value="{{ old('company') }}">
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label" for="company">Entreprise / Société (Facultatif)</label>
+                <input type="text" name="company" id="company" class="form-control" value="{{ old('company') }}">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="ice">ICE (Identifiant Commun Entreprise) (Facultatif)</label>
+                <input type="text" name="ice" id="ice" class="form-control" value="{{ old('ice') }}" placeholder="Ex: 001234567000089">
+            </div>
         </div>
 
         <div class="form-group">

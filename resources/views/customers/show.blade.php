@@ -49,6 +49,10 @@
                 <span>{{ $customer->company ?? '-' }}</span>
             </div>
             <div>
+                <span style="font-size: 0.8rem; color: var(--text-secondary); display: block;">ICE Client</span>
+                <span style="font-weight: 500;">{{ $customer->ice ?? 'Non spécifié' }}</span>
+            </div>
+            <div>
                 <span style="font-size: 0.8rem; color: var(--text-secondary); display: block;">Adresse de livraison</span>
                 <span style="font-size: 0.9rem;">{!! nl2br(e($customer->address)) ?? '-' !!}</span>
             </div>

@@ -28,7 +28,8 @@ class CustomerController extends Controller
                 $q->where('name', 'like', "%{$search}%")
                   ->orWhere('phone', 'like', "%{$search}%")
                   ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('company', 'like', "%{$search}%");
+                  ->orWhere('company', 'like', "%{$search}%")
+                  ->orWhere('ice', 'like', "%{$search}%");
             });
         }
 
@@ -74,6 +75,7 @@ class CustomerController extends Controller
             'phone' => 'nullable|string|max:50',
             'email' => 'nullable|email|max:255',
             'company' => 'nullable|string|max:255',
+            'ice' => 'nullable|string|max:50',
             'address' => 'nullable|string',
             'notes' => 'nullable|string',
         ]);
@@ -83,6 +85,7 @@ class CustomerController extends Controller
             'phone' => $request->phone,
             'email' => $request->email,
             'company' => $request->company,
+            'ice' => $request->ice,
             'address' => $request->address,
             'notes' => $request->notes,
             'created_by' => auth()->id(),
@@ -103,6 +106,7 @@ class CustomerController extends Controller
             'phone' => 'nullable|string|max:50',
             'email' => 'nullable|email|max:255',
             'company' => 'nullable|string|max:255',
+            'ice' => 'nullable|string|max:50',
             'address' => 'nullable|string',
             'notes' => 'nullable|string',
         ]);

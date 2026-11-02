@@ -47,9 +47,15 @@
             </div>
         </div>
 
-        <div class="form-group">
-            <label class="form-label" for="company">Entreprise / Société</label>
-            <input type="text" name="company" id="company" class="form-control" value="{{ old('company', $customer->company) }}">
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label" for="company">Entreprise / Société</label>
+                <input type="text" name="company" id="company" class="form-control" value="{{ old('company', $customer->company) }}">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="ice">ICE (Identifiant Commun Entreprise)</label>
+                <input type="text" name="ice" id="ice" class="form-control" value="{{ old('ice', $customer->ice) }}" placeholder="Ex: 001234567000089">
+            </div>
         </div>
 
         <div class="form-group">

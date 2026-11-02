@@ -15,6 +15,7 @@ class Customer extends Model
         'email',
         'address',
         'company',
+        'ice',
         'notes',
         'created_by',
     ];

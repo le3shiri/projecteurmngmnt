@@ -292,14 +292,17 @@ class OrderController extends Controller
         $logoBase64 = $this->getBase64Asset('logo.png');
         $cachetBase64 = $this->getBase64Asset('cachet-removebg-preview.png', ['cachet.jpeg']);
 
-        // Arabic text shaper
-        require_once base_path('vendor/khaled.alshamaa/ar-php/src/Arabic.php');
-        $arabic = new \ArPHP\I18N\Arabic();
+        // Arabic text shaper (safe resolver without crashing on missing vendor file)
+        $arabic = $this->getArabicShaper();
 
         $formatText = function ($text) use ($arabic) {
             if (empty($text)) return '';
-            if (preg_match('/\p{Arabic}/u', $text)) {
-                return $arabic->utf8Glyphs($text);
+            if ($arabic && preg_match('/\p{Arabic}/u', $text)) {
+                try {
+                    return $arabic->utf8Glyphs($text);
+                } catch (\Throwable $e) {
+                    return $text;
+                }
             }
             return $text;
         };
@@ -340,6 +343,8 @@ class OrderController extends Controller
             'customerNameFormatted' => $customerNameFormatted,
             'customerCompanyFormatted' => $customerCompanyFormatted,
             'customerAddressFormatted' => $customerAddressFormatted,
+            'customerIce' => $order->customer->ice ?? null,
+            'showCustomerIce' => !empty($order->customer->ice),
             'totalHt' => $totalHt,
             'tva' => $tva,
             'tvaRate' => 0,
@@ -355,7 +360,7 @@ class OrderController extends Controller
             'emitterIce' => '0040525690000032',
             'emitterIf' => '73411678',
             'emitterTp' => '7210/2026/5669',
-            'emitterRib' => '011 640 0000372100000583 28',
+            'emitterRib' => '230 640 6790082211016800 82',
             'conditionDelivery' => "Livraison sous 3 à 5 jours ouvrés après validation du devis et le versement de l'acompte.",
             'conditionManufacturing' => "La personnalisation et la fabrication de votre logo débutent immédiatement dès réception d’un acompte de 10% du montant total.",
             'showConditions' => true,
@@ -528,6 +533,51 @@ class OrderController extends Controller
         return null;
     }
 
+    /**
+     * Resolve Arabic shaper safely without throwing Fatal Error if missing
+     */
+    private function getArabicShaper(): ?object
+    {
+        if (class_exists('\ArPHP\I18N\Arabic')) {
+            try {
+                return new \ArPHP\I18N\Arabic();
+            } catch (\Throwable $e) {
+                // fallback
+            }
+        }
+
+        $possiblePaths = [
+            app_path('Support/ArPhp/Arabic.php'),
+            base_path('app/Support/ArPhp/Arabic.php'),
+            base_path('vendor/khaled.alshamaa/ar-php/src/Arabic.php'),
+            base_path('../vendor/khaled.alshamaa/ar-php/src/Arabic.php'),
+            base_path('vendor/khaled-alshamaa/ar-php/src/Arabic.php'),
+            base_path('../vendor/khaled-alshamaa/ar-php/src/Arabic.php'),
+        ];
+
+        if (isset($_SERVER['DOCUMENT_ROOT'])) {
+            $docRoot = rtrim($_SERVER['DOCUMENT_ROOT'], '/\\');
+            $possiblePaths[] = $docRoot . '/app/Support/ArPhp/Arabic.php';
+            $possiblePaths[] = $docRoot . '/vendor/khaled.alshamaa/ar-php/src/Arabic.php';
+            $possiblePaths[] = dirname($docRoot) . '/vendor/khaled.alshamaa/ar-php/src/Arabic.php';
+        }
+
+        foreach ($possiblePaths as $path) {
+            if ($path && file_exists($path) && is_readable($path)) {
+                try {
+                    require_once $path;
+                    if (class_exists('\ArPHP\I18N\Arabic')) {
+                        return new \ArPHP\I18N\Arabic();
+                    }
+                } catch (\Throwable $e) {
+                    // continue
+                }
+            }
+        }
+
+        return null;
+    }
+
     // Document Editor View
     public function editDocument(Order $order, $type)
     {
@@ -557,14 +607,17 @@ class OrderController extends Controller
         $logoBase64 = $this->getBase64Asset('logo.png');
         $cachetBase64 = $this->getBase64Asset('cachet-removebg-preview.png', ['cachet.jpeg']);
 
-        // Arabic shaper
-        require_once base_path('vendor/khaled.alshamaa/ar-php/src/Arabic.php');
-        $arabic = new \ArPHP\I18N\Arabic();
+        // Arabic shaper (safe resolver without crashing on missing vendor file)
+        $arabic = $this->getArabicShaper();
 
         $formatText = function ($text) use ($arabic) {
             if (empty($text)) return '';
-            if (preg_match('/\p{Arabic}/u', $text)) {
-                return $arabic->utf8Glyphs($text);
+            if ($arabic && preg_match('/\p{Arabic}/u', $text)) {
+                try {
+                    return $arabic->utf8Glyphs($text);
+                } catch (\Throwable $e) {
+                    return $text;
+                }
             }
             return $text;
         };
@@ -625,6 +678,7 @@ class OrderController extends Controller
             'customer' => (object) [
                 'name' => $request->input('customer_name', $order->customer->name ?? ''),
                 'company' => $request->input('customer_company', $order->customer->company ?? ''),
+                'ice' => $request->input('customer_ice', $order->customer->ice ?? ''),
                 'phone' => $request->input('customer_phone', $order->customer->phone ?? ''),
                 'email' => $request->input('customer_email', $order->customer->email ?? ''),
                 'address' => $request->input('customer_address', $order->customer->address ?? ''),
@@ -640,6 +694,8 @@ class OrderController extends Controller
             'customerNameFormatted' => $customerNameFormatted,
             'customerCompanyFormatted' => $customerCompanyFormatted,
             'customerAddressFormatted' => $customerAddressFormatted,
+            'customerIce' => $request->input('customer_ice', $order->customer->ice ?? ''),
+            'showCustomerIce' => $request->input('show_customer_ice', '0') === '1',
             'totalHt' => $totalHt,
             'tva' => $tva,
             'tvaRate' => $tvaRate,
@@ -656,7 +712,7 @@ class OrderController extends Controller
             'emitterIce' => $request->input('emitter_ice', '0040525690000032'),
             'emitterIf' => $request->input('emitter_if', '73411678'),
             'emitterTp' => $request->input('emitter_tp', '7210/2026/5669'),
-            'emitterRib' => $request->input('emitter_rib', '011 640 0000372100000583 28'),
+            'emitterRib' => $request->input('emitter_rib', '230 640 6790082211016800 82'),
             'conditionDelivery' => $request->input('condition_delivery', "Livraison sous 3 à 5 jours ouvrés après validation du devis et le versement de l'acompte."),
             'conditionManufacturing' => $request->input('condition_manufacturing', "La personnalisation et la fabrication de votre logo débutent immédiatement dès réception d’un acompte de 10% du montant total."),
             'showConditions' => $request->input('show_conditions', '1') === '1',

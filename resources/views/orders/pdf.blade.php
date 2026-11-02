@@ -262,6 +262,9 @@
                     Téléphone: {{ $order->customer->phone ?? 'Non spécifié' }}<br>
                     Email: {{ $order->customer->email ?? 'Non spécifié' }}<br>
                     Adresse: {!! !empty($customerAddressFormatted) ? $customerAddressFormatted : 'Non spécifiée' !!}
+                    @if((!isset($showCustomerIce) || $showCustomerIce) && !empty($customerIce))
+                        <br>ICE : {{ $customerIce }}
+                    @endif
                 </div>
             </td>
             @endif
@@ -377,7 +380,7 @@
         </tr>
         <tr>
             <td>
-                RIB BMCE : {{ $emitterRib ?? '011 640 0000372100000583 28' }}
+                RIB CIH : {{ $emitterRib ?? '230 640 6790082211016800 82' }}
             </td>
         </tr>
     </table>

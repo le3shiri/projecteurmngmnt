@@ -38,6 +38,7 @@
             <input type="hidden" name="show_conditions" id="show_conditions" value="1">
             <input type="hidden" name="show_cachet" id="show_cachet" value="1">
             <input type="hidden" name="show_legal_footer" id="show_legal_footer" value="1">
+            <input type="hidden" name="show_customer_ice" id="show_customer_ice" value="{{ !empty($order->customer->ice) ? '1' : '0' }}">
 
             <!-- Master Section Visibility Control Panel -->
             <div class="glass-card" style="margin: 0; background: linear-gradient(135deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.85)); border: 1px solid rgba(212, 175, 55, 0.35);">
@@ -172,6 +173,20 @@
                             </span>
                         </label>
                     </div>
+
+                    <!-- 9. ICE Client (Optionnel) -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); border-radius: 8px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-id-card" style="color: #38bdf8; width: 16px;"></i>
+                            <span style="font-size: 0.82rem; font-weight: 600; color: var(--text-primary);">ICE Client</span>
+                        </div>
+                        <label style="position: relative; display: inline-block; width: 44px; height: 24px; cursor: pointer; flex-shrink: 0; margin: 0;" title="Activer / Masquer ICE Client">
+                            <input type="checkbox" data-section-toggle="customer_ice" {{ !empty($order->customer->ice) ? 'checked' : '' }} onchange="toggleDocSection('customer_ice', this.checked)" style="opacity:0; width:0; height:0;">
+                            <span data-section-slider="customer_ice" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: {{ !empty($order->customer->ice) ? 'var(--primary, #d4af37)' : '#374151' }}; transition: 0.3s; border-radius: 24px;">
+                                <span style="position: absolute; content: ''; height: 18px; width: 18px; left: 3px; bottom: 3px; transform: {{ !empty($order->customer->ice) ? 'translateX(20px)' : 'translateX(0)' }}; background: {{ !empty($order->customer->ice) ? '#ffffff' : '#9ca3af' }}; transition: 0.3s; border-radius: 50%; display: block;"></span>
+                            </span>
+                        </label>
+                    </div>
                 </div>
             </div>
 
@@ -240,8 +255,8 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label class="form-label" for="emitter_rib">RIB BMCE</label>
-                    <input type="text" name="emitter_rib" id="emitter_rib" class="form-control" value="011 640 0000372100000583 28" oninput="updateLivePreview()">
+                    <label class="form-label" for="emitter_rib">RIB CIH</label>
+                    <input type="text" name="emitter_rib" id="emitter_rib" class="form-control" value="230 640 6790082211016800 82" oninput="updateLivePreview()">
                 </div>
             </div>
 
@@ -279,6 +294,25 @@
                 <div class="form-group">
                     <label class="form-label" for="customer_address">Adresse complète</label>
                     <textarea name="customer_address" id="customer_address" class="form-control" rows="2" oninput="updateLivePreview()" dir="auto">{{ $order->customer->address ?? '' }}</textarea>
+                </div>
+                <div class="form-group" style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.1);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <label class="form-label" for="customer_ice" style="margin: 0; display: flex; align-items: center; gap: 6px;">
+                            <i class="fa-solid fa-id-card" style="color: var(--primary);"></i> ICE Client (Optionnel)
+                        </label>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span id="customer_ice_toggle_hint" style="font-size: 0.75rem; color: {{ !empty($order->customer->ice) ? 'var(--success)' : 'var(--text-secondary)' }};">
+                                {{ !empty($order->customer->ice) ? 'Affiché sur le document' : 'Masqué du document' }}
+                            </span>
+                            <label style="position: relative; display: inline-block; width: 44px; height: 24px; cursor: pointer; flex-shrink: 0; margin: 0;" title="Afficher / Masquer ICE Client sur le document">
+                                <input type="checkbox" data-section-toggle="customer_ice" {{ !empty($order->customer->ice) ? 'checked' : '' }} onchange="toggleDocSection('customer_ice', this.checked)" style="opacity:0; width:0; height:0;">
+                                <span data-section-slider="customer_ice" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: {{ !empty($order->customer->ice) ? 'var(--primary, #d4af37)' : '#374151' }}; transition: 0.3s; border-radius: 24px;">
+                                    <span style="position: absolute; content: ''; height: 18px; width: 18px; left: 3px; bottom: 3px; transform: {{ !empty($order->customer->ice) ? 'translateX(20px)' : 'translateX(0)' }}; background: {{ !empty($order->customer->ice) ? '#ffffff' : '#9ca3af' }}; transition: 0.3s; border-radius: 50%; display: block;"></span>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                    <input type="text" name="customer_ice" id="customer_ice" class="form-control" value="{{ $order->customer->ice ?? '' }}" placeholder="Ex: 002345678000089" oninput="updateLivePreview()">
                 </div>
             </div>
 
@@ -497,7 +531,7 @@
             <!-- Pied de page Légal Card with Toggle Switch -->
             <div class="glass-card" id="card_legal_footer" style="margin: 0; transition: opacity 0.3s;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <h3 class="card-title" style="margin: 0;"><i class="fa-solid fa-scale-balanced" style="color: #38bdf8;"></i> Pied de Page Légal (ICE, RIB BMCE)</h3>
+                    <h3 class="card-title" style="margin: 0;"><i class="fa-solid fa-scale-balanced" style="color: #38bdf8;"></i> Pied de Page Légal (ICE, RIB CIH)</h3>
                     <label style="position: relative; display: inline-block; width: 48px; height: 26px; cursor: pointer; flex-shrink: 0; margin: 0;" title="Activer / Désactiver le pied de page légal">
                         <input type="checkbox" data-section-toggle="legal_footer" checked onchange="toggleDocSection('legal_footer', this.checked)" style="opacity:0; width:0; height:0;">
                         <span data-section-slider="legal_footer" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: var(--primary, #d4af37); transition: 0.3s; border-radius: 26px;">
@@ -509,7 +543,7 @@
                     <i class="fa-solid fa-circle-check"></i> Tableau légal officiel actif en bas de page
                 </div>
                 <div style="font-size: 0.78rem; color: var(--text-secondary); line-height: 1.5; background: rgba(0,0,0,0.15); padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color);">
-                    Tableau 3 lignes : Adresse Tanger, E-mail, GSM, ICE 0040525690000032, IF 73411678, TP 7210/2026/5669 et RIB BMCE.
+                    Tableau 3 lignes : Adresse Tanger, E-mail, GSM, ICE 0040525690000032, IF 73411678, TP 7210/2026/5669 et RIB CIH.
                 </div>
             </div>
 
@@ -566,6 +600,7 @@
                             <div style="font-size: 12px; color: #4b5563;">Tél: <span id="preview-client-phone">{{ $order->customer->phone ?? '' }}</span></div>
                             <div style="font-size: 12px; color: #4b5563;">Email: <span id="preview-client-email">{{ $order->customer->email ?? '' }}</span></div>
                             <div style="font-size: 12px; color: #4b5563;">Adresse: <span id="preview-client-address">{{ $order->customer->address ?? '' }}</span></div>
+                            <div id="preview-client-ice-row" style="font-size: 12px; color: #4b5563; display: {{ !empty($order->customer->ice) ? 'block' : 'none' }};">ICE : <span id="preview-client-ice">{{ $order->customer->ice ?? '' }}</span></div>
                         </div>
                     </div>
 
@@ -649,7 +684,7 @@
                         </tr>
                         <tr>
                             <td style="padding: 5px 8px; border: 1px solid #d1d5db; line-height: 1.45;">
-                                RIB BMCE : <span id="preview-foot-rib">011 640 0000372100000583 28</span>
+                                RIB CIH : <span id="preview-foot-rib">230 640 6790082211016800 82</span>
                             </td>
                         </tr>
                     </table>
@@ -678,6 +713,7 @@
         logo: true,
         emitter: true,
         customer: true,
+        customer_ice: {{ !empty($order->customer->ice) ? 'true' : 'false' }},
         advances: true,
         words: true,
         conditions: true,
@@ -717,7 +753,9 @@
         const hintEl = document.getElementById(sectionKey + '_toggle_hint');
         if (hintEl) {
             hintEl.style.color = state ? 'var(--success)' : 'var(--text-secondary)';
-            if (sectionKey === 'cachet') {
+            if (sectionKey === 'customer_ice') {
+                hintEl.textContent = state ? 'Affiché sur le document' : 'Masqué du document';
+            } else if (sectionKey === 'cachet') {
                 hintEl.innerHTML = state 
                     ? '<i class="fa-solid fa-circle-check"></i> Cachet officiel actif (cliquez pour retirer)' 
                     : '<i class="fa-solid fa-eye-slash"></i> Cachet retiré (cliquez pour réactiver)';
@@ -779,6 +817,14 @@
         const clientEl  = document.getElementById('preview-client-block');
         if (emitterEl) emitterEl.style.display = sectionStates.emitter ? 'block' : 'none';
         if (clientEl)  clientEl.style.display  = sectionStates.customer ? 'block' : 'none';
+
+        // ICE Client
+        const iceRow = document.getElementById('preview-client-ice-row');
+        if (iceRow) {
+            const iceInput = document.getElementById('customer_ice');
+            const iceVal = (iceInput ? iceInput.value : '').trim();
+            iceRow.style.display = (sectionStates.customer_ice && iceVal && sectionStates.customer) ? 'block' : 'none';
+        }
 
         if (infoRow) {
             if (!sectionStates.emitter && !sectionStates.customer) {
@@ -910,7 +956,7 @@
         const eIce = document.getElementById('emitter_ice').value || '0040525690000032';
         const eIf = document.getElementById('emitter_if').value || '73411678';
         const eTp = document.getElementById('emitter_tp').value || '7210/2026/5669';
-        const eRib = document.getElementById('emitter_rib').value || '011 640 0000372100000583 28';
+        const eRib = document.getElementById('emitter_rib').value || '230 640 6790082211016800 82';
 
         document.getElementById('preview-emitter-name').textContent = eName;
         document.getElementById('preview-emitter-address').textContent = eAddr;
@@ -935,6 +981,15 @@
         document.getElementById('preview-client-phone').textContent = document.getElementById('customer_phone').value || '';
         document.getElementById('preview-client-email').textContent = document.getElementById('customer_email').value || '';
         document.getElementById('preview-client-address').textContent = document.getElementById('customer_address').value || '';
+
+        const iceInput = document.getElementById('customer_ice');
+        const iceVal = iceInput ? iceInput.value.trim() : '';
+        const previewIce = document.getElementById('preview-client-ice');
+        if (previewIce) previewIce.textContent = iceVal;
+        const iceRow = document.getElementById('preview-client-ice-row');
+        if (iceRow) {
+            iceRow.style.display = (sectionStates.customer_ice && iceVal && sectionStates.customer) ? 'block' : 'none';
+        }
 
         // Rows
         const tbody = document.getElementById('preview-items-tbody');
