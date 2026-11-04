@@ -55,6 +55,43 @@ try {
     Artisan::call('view:clear');
     echo Artisan::output();
 
+    echo "\n=== 3. SYNCHRONISATION DES ASSETS (IMAGES & REALISATIONS) ===\n";
+    $copyDir = function ($src, $dst) use (&$copyDir) {
+        if (!is_dir($src)) return;
+        @mkdir($dst, 0755, true);
+        $dir = opendir($src);
+        while (($file = readdir($dir)) !== false) {
+            if ($file != '.' && $file != '..') {
+                if (is_dir($src . '/' . $file)) {
+                    $copyDir($src . '/' . $file, $dst . '/' . $file);
+                } else {
+                    @copy($src . '/' . $file, $dst . '/' . $file);
+                }
+            }
+        }
+        closedir($dir);
+    };
+
+    $sourcePublic = base_path('public');
+    $targetDir = __DIR__;
+
+    if ($sourcePublic !== $targetDir) {
+        if (is_dir($sourcePublic . '/images')) {
+            $copyDir($sourcePublic . '/images', $targetDir . '/images');
+            echo "✓ Dossier images/ synchronisé vers public_html/images/\n";
+        }
+        if (is_dir($sourcePublic . '/realisations')) {
+            $copyDir($sourcePublic . '/realisations', $targetDir . '/realisations');
+            echo "✓ Dossier realisations/ synchronisé vers public_html/realisations/\n";
+        }
+        if (file_exists($sourcePublic . '/logo.png')) {
+            @copy($sourcePublic . '/logo.png', $targetDir . '/logo.png');
+            echo "✓ Fichier logo.png synchronisé vers public_html/logo.png\n";
+        }
+    } else {
+        echo "✓ Les assets sont déjà situés dans le dossier d'exécution.\n";
+    }
+
     echo "\n===========================================\n";
     echo "✓ SUCCÈS : Toutes les migrations ont été appliquées avec succès !\n";
 } catch (\Throwable $e) {

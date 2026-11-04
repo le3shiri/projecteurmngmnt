@@ -93,6 +93,21 @@ Route::get('/fix-storage', function () {
             @unlink($brokenPublicStorage);
         }
 
+        // Auto-sync images and realisations to active public_html if needed
+        $docRoot = $_SERVER['DOCUMENT_ROOT'] ?? null;
+        if ($docRoot && is_dir($docRoot)) {
+            $srcPublic = base_path('public');
+            if (is_dir($srcPublic . '/images') && !is_dir($docRoot . '/images')) {
+                $copyDir($srcPublic . '/images', $docRoot . '/images');
+            }
+            if (is_dir($srcPublic . '/realisations') && !is_dir($docRoot . '/realisations')) {
+                $copyDir($srcPublic . '/realisations', $docRoot . '/realisations');
+            }
+            if (file_exists($srcPublic . '/logo.png') && !file_exists($docRoot . '/logo.png')) {
+                @copy($srcPublic . '/logo.png', $docRoot . '/logo.png');
+            }
+        }
+
         $diagnostics = [
             'DOCUMENT_ROOT' => $_SERVER['DOCUMENT_ROOT'] ?? 'N/A',
             'base_path' => base_path(),
@@ -105,12 +120,72 @@ Route::get('/fix-storage', function () {
         ];
 
         return response()->json([
-            'message' => 'Le stockage a été converti en dossier public-storage et tous les fichiers existants ont été copiés avec succès !',
+            'message' => 'Le stockage et les assets ont été configurés et synchronisés avec succès !',
             'diagnostics' => $diagnostics
         ], 200, [], JSON_PRETTY_PRINT);
     } catch (\Exception $e) {
         return 'Erreur : ' . $e->getMessage();
     }
+});
+
+// Fallback Asset Server for Shared Hosting (Hostinger / public_html)
+Route::get('images/{path}', function ($path) {
+    $searchPaths = [
+        public_path('images/' . $path),
+        base_path('public/images/' . $path),
+        base_path('../public_html/images/' . $path),
+        base_path('public_html/images/' . $path),
+        isset($_SERVER['DOCUMENT_ROOT']) ? rtrim($_SERVER['DOCUMENT_ROOT'], '/\\') . '/images/' . $path : null,
+    ];
+    foreach (array_filter($searchPaths) as $p) {
+        if (file_exists($p) && is_file($p)) {
+            $mime = mime_content_type($p) ?: 'image/jpeg';
+            return response()->file($p, [
+                'Content-Type' => $mime,
+                'Cache-Control' => 'public, max-age=604800, immutable',
+            ]);
+        }
+    }
+    abort(404);
+})->where('path', '.*');
+
+Route::get('realisations/{file}', function ($file) {
+    $searchPaths = [
+        public_path('realisations/' . $file),
+        base_path('public/realisations/' . $file),
+        base_path('../public_html/realisations/' . $file),
+        base_path('public_html/realisations/' . $file),
+        isset($_SERVER['DOCUMENT_ROOT']) ? rtrim($_SERVER['DOCUMENT_ROOT'], '/\\') . '/realisations/' . $file : null,
+    ];
+    foreach (array_filter($searchPaths) as $p) {
+        if (file_exists($p) && is_file($p)) {
+            $mime = mime_content_type($p) ?: 'image/jpeg';
+            return response()->file($p, [
+                'Content-Type' => $mime,
+                'Cache-Control' => 'public, max-age=604800, immutable',
+            ]);
+        }
+    }
+    abort(404);
+});
+
+Route::get('logo.png', function () {
+    $searchPaths = [
+        public_path('logo.png'),
+        base_path('public/logo.png'),
+        base_path('../public_html/logo.png'),
+        base_path('public_html/logo.png'),
+        isset($_SERVER['DOCUMENT_ROOT']) ? rtrim($_SERVER['DOCUMENT_ROOT'], '/\\') . '/logo.png' : null,
+    ];
+    foreach (array_filter($searchPaths) as $p) {
+        if (file_exists($p) && is_file($p)) {
+            return response()->file($p, [
+                'Content-Type' => 'image/png',
+                'Cache-Control' => 'public, max-age=604800, immutable',
+            ]);
+        }
+    }
+    abort(404);
 });
 
 // Public Customer VIP Catalogue Routes
